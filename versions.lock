@@ -1,3 +1,10 @@
 # Pinned Docker image digests will be appended here as each group is
 # installed. Format: <image>:<tag>@sha256:<digest>
 # Group A: no images yet
+
+# Group B (added 2026-06-05)
+ollama/ollama:0.5.4@sha256:18bfb1d605604fd53dcad20d0556df4c781e560ebebcd923454d627c994a0e37
+libretranslate/libretranslate:v1.9.6@sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32
+byaidu/pdf2zh:1.9.11@sha256:8e083ecbeb3f22dcbe0e8365e78ed2d776c3881221ebcf9d526df6db621fef9b
+qwen2.5:7b@sha256:845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e
+qwen2.5:3b@sha256:357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b
