@@ -22,3 +22,13 @@ python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecb
 pumacp/puma-info-piper:0.1.0 (built locally, image ID sha256:86b6a6b1b14927705cc36fdcd5c102fd267da0e2fed21b0454ee9228f9bac4ae)
 pumacp/puma-info-xtts:0.1.0 (built locally, image ID sha256:bc969542b64208643645b4043be8fc096543b0836fa24cfb2f564ec74aec6ebc)
 XTTS v2 model: tts_models/multilingual/multi-dataset/xtts_v2 (Coqui Public Model License, CPML)
+
+# Group D (added 2026-06-05)
+node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
+hyperframes@0.6.74
+chromium (debian package) 148.0.7778.215-1~deb12u1
+manimcommunity/manim:v0.20.1@sha256:f18f53f2e4eaf2ea41713437d34363fb3f5cc6008b03fd798676ac0359396c3b
+pumacp/puma-info-hyperframes:0.1.0 (built locally, image ID sha256:f9b159e473320aaebe65b4e794deb52b2109c6a7011f34950662126e5fe9d409)
+pumacp/puma-info-manim:0.1.0 (built locally, image ID sha256:bf624d5a1cf4456f247a2c7efa4aeb4f0160afb30e99244ec0297bcb48ada5f7)
+# Skills bundle is regenerated locally (.agents/skills/), never tracked; source commit pinned for reproducibility.
+HyperFrames skills bundle: heygen-com/hyperframes @ bacfb17538ae2c79343e816dd03d6a62f2d0163c
