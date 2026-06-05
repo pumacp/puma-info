@@ -8,3 +8,17 @@ libretranslate/libretranslate:v1.9.6@sha256:1de2d7056bb8ad607a412f4563d9abe324ff
 byaidu/pdf2zh:1.9.11@sha256:8e083ecbeb3f22dcbe0e8365e78ed2d776c3881221ebcf9d526df6db621fef9b
 qwen2.5:7b@sha256:845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e
 qwen2.5:3b@sha256:357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b
+
+# Group C (added 2026-06-05)
+piper-tts==1.4.2
+en_US-amy-medium voice ONNX SHA-256: b3a6e47b57b8c7fbe6a0ce2518161a50f59a9cdd8a50835c02cb02bdd6206c18
+coqui-tts==0.27.5
+# coqui-tts ships torch as an optional extra; pinned explicitly (cu126 wheels).
+torch==2.7.1 ; torchaudio==2.7.1   (index: https://download.pytorch.org/whl/cu126)
+# transformers pinned to last 4.x; 5.x removes isin_mps_friendly used by coqui-tts.
+transformers==4.57.6
+nvidia/cuda:12.6.3-runtime-ubuntu24.04@sha256:92906d87596d638d35015c6353053121bd299d25943b875763321653884ba924
+python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+pumacp/puma-info-piper:0.1.0 (built locally, image ID sha256:86b6a6b1b14927705cc36fdcd5c102fd267da0e2fed21b0454ee9228f9bac4ae)
+pumacp/puma-info-xtts:0.1.0 (built locally, image ID sha256:bc969542b64208643645b4043be8fc096543b0836fa24cfb2f564ec74aec6ebc)
+XTTS v2 model: tts_models/multilingual/multi-dataset/xtts_v2 (Coqui Public Model License, CPML)
