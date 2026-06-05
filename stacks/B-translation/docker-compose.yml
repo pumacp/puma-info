@@ -1,0 +1,92 @@
+# Group B · Translation
+# Three services, all attached to the external puma_info_network.
+# Only ollama and libretranslate auto-start under profile `translation`.
+# pdf_translator runs on-demand via `docker compose run --rm`.
+
+name: puma_info_translation
+
+services:
+
+  ollama:
+    image: ollama/ollama:0.5.4
+    container_name: puma_info_ollama
+    restart: unless-stopped
+    ports:
+      - "11435:11434"
+    volumes:
+      - puma_info_ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    labels:
+      puma_info: "true"
+      gpu: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    profiles: ["translation"]
+    networks:
+      - default
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.9.6
+    container_name: puma_info_libretranslate
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_LOAD_ONLY=es,en
+      - LT_THREADS=2
+      - LT_HOST=0.0.0.0
+    volumes:
+      - puma_info_libretranslate_models:/home/libretranslate/.local
+    labels:
+      puma_info: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/languages')\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    profiles: ["translation"]
+    networks:
+      - default
+
+  pdf_translator:
+    image: byaidu/pdf2zh:1.9.11
+    container_name: puma_info_pdf_translator
+    volumes:
+      - ../../translation/input_es:/app/input:ro
+      - ../../translation/output_en:/app/output
+      - ../../translation/bilingual:/app/bilingual
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=qwen2.5:7b
+    depends_on:
+      ollama:
+        condition: service_healthy
+    labels:
+      puma_info: "true"
+    profiles: ["translation"]
+    networks:
+      - default
+
+volumes:
+  puma_info_ollama_data:
+    labels:
+      puma_info: "true"
+  puma_info_libretranslate_models:
+    labels:
+      puma_info: "true"
+
+networks:
+  default:
+    external: true
+    name: puma_info_network

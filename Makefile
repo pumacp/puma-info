@@ -61,3 +61,31 @@ cleanup: ## Remove ALL puma_info resources (containers, volumes, network)
 	@docker volume ls --filter "label=puma_info=true" -q | xargs -r docker volume rm
 	@docker network rm $(NETWORK) 2>/dev/null || true
 	@echo "Cleanup complete"
+
+# === Group B · Translation ===
+
+translation-up: ## Start Group B services (ollama + libretranslate)
+	cd stacks/B-translation && \
+		docker compose --profile translation up -d ollama libretranslate
+	@docker ps --filter "label=puma_info=true" \
+		--format "  {{.Names}}: {{.Status}}"
+
+translation-pull-models: ## Pull qwen2.5:7b into puma_info_ollama (NOT the PUMA one)
+	docker exec puma_info_ollama ollama pull qwen2.5:7b
+	docker exec puma_info_ollama ollama pull qwen2.5:3b
+	docker exec puma_info_ollama ollama list
+
+translation-smoke-test: ## End-to-end smoke test on a synthetic 1-page PDF
+	bash stacks/B-translation/smoke_test.sh
+
+translation-run: approvals/01_pdf_translation_approved ## Translate every PDF in input_es/
+	python3 orchestrator/scripts/05_translate_pdfs.py
+
+translation-down: ## Stop Group B services (containers only, models persist)
+	cd stacks/B-translation && docker compose --profile translation down
+
+approvals/01_pdf_translation_approved:
+	@echo "ERROR: human approval required before batch translation."
+	@echo "       Create this marker file manually after verifying outputs:"
+	@echo "       touch approvals/01_pdf_translation_approved"
+	@exit 1

@@ -12,6 +12,9 @@ node_modules/
 
 # Outputs (regeneratable)
 output/
+translation/input_es/
+translation/output_en/
+translation/bilingual/
 compositions/*/render/
 compositions/*/audio/*.wav
 compositions/*/audio/*.mp3
