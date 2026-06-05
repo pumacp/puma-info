@@ -46,3 +46,12 @@ Thumbs.db
 # Approvals (per-checkout, do not commit)
 approvals/*
 !approvals/.gitkeep
+
+# Private voice content (reference recordings)
+voice/reference/*.wav
+voice/reference/*.mp3
+voice/reference/*.flac
+voice/reference/*.ogg
+voice/reference/*.opus
+voice/reference/*.m4a
+!voice/reference/.gitkeep

@@ -1,0 +1,23 @@
+# Piper TTS — CPU-only English narration
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG PIPER_VERSION=1.4.2
+RUN pip install --no-cache-dir piper-tts==${PIPER_VERSION}
+
+# Pre-download English female voice (medium quality, 22050 Hz, ~63 MB)
+RUN mkdir -p /voices/en_US-amy-medium && cd /voices/en_US-amy-medium && \
+    curl -fsSL \
+      https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx \
+      -o en_US-amy-medium.onnx && \
+    curl -fsSL \
+      https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json \
+      -o en_US-amy-medium.onnx.json
+
+LABEL puma_info="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]

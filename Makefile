@@ -89,3 +89,38 @@ approvals/01_pdf_translation_approved:
 	@echo "       Create this marker file manually after verifying outputs:"
 	@echo "       touch approvals/01_pdf_translation_approved"
 	@exit 1
+
+# === Group C · Voice ===
+
+gpu-available: ## Fail if a puma_info_* GPU container is currently running
+	@running=$$(docker ps --filter "label=puma_info=true" \
+		--filter "label=gpu=true" -q | wc -l); \
+	if [ "$$running" -gt "0" ]; then \
+		echo "ERROR: another puma_info_* GPU service is running."; \
+		docker ps --filter "label=puma_info=true" --filter "label=gpu=true" \
+			--format "  {{.Names}}: {{.Status}}"; \
+		echo "Run 'make gpu-release' first."; \
+		exit 1; \
+	fi
+
+voice-build: ## Build Piper and XTTS images
+	cd stacks/C-voice && docker compose --profile voice build piper xtts
+
+voice-up-piper: ## Start Piper (CPU only)
+	cd stacks/C-voice && docker compose --profile voice up -d piper
+	@docker ps --filter "name=^puma_info_piper$$" \
+		--format "  {{.Names}}: {{.Status}}"
+
+voice-up-xtts: gpu-available ## Start XTTS v2 (GPU)
+	cd stacks/C-voice && docker compose --profile voice up -d xtts
+	@docker ps --filter "name=^puma_info_xtts$$" \
+		--format "  {{.Names}}: {{.Status}}"
+
+voice-test-piper: voice-up-piper ## Smoke test Piper end-to-end (synthesize and verify)
+	bash stacks/C-voice/smoke_test_piper.sh
+
+voice-test-xtts: voice-up-xtts ## Verify XTTS v2 starts and model loads
+	bash stacks/C-voice/smoke_test_xtts.sh
+
+voice-down: ## Stop all Group C services
+	cd stacks/C-voice && docker compose --profile voice down

@@ -1,0 +1,63 @@
+# Group C · Voice
+# Two services: piper (CPU) and xtts (GPU). Both on-demand under
+# profile `voice`. Volumes persist models across container recreates.
+
+name: puma_info_voice
+
+services:
+
+  piper:
+    build:
+      context: .
+      dockerfile: Dockerfile.piper
+    image: pumacp/puma-info-piper:0.1.0
+    container_name: puma_info_piper
+    volumes:
+      - ../../voice/piper_models:/voices/external
+      - ../../compositions:/work/compositions
+      - puma_info_piper_data:/data
+    labels:
+      puma_info: "true"
+    profiles: ["voice"]
+    networks:
+      - default
+
+  xtts:
+    build:
+      context: .
+      dockerfile: Dockerfile.xtts
+    image: pumacp/puma-info-xtts:0.1.0
+    container_name: puma_info_xtts
+    volumes:
+      - ../../voice/reference:/work/reference:ro
+      - ../../voice/xtts_models:/work/models
+      - ../../compositions:/work/compositions
+      - puma_info_xtts_models:/root/.local/share/tts
+    environment:
+      - COQUI_TOS_AGREED=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    labels:
+      puma_info: "true"
+      gpu: "true"
+    profiles: ["voice"]
+    networks:
+      - default
+
+volumes:
+  puma_info_piper_data:
+    labels:
+      puma_info: "true"
+  puma_info_xtts_models:
+    labels:
+      puma_info: "true"
+
+networks:
+  default:
+    external: true
+    name: puma_info_network

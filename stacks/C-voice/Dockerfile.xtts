@@ -1,0 +1,40 @@
+# XTTS v2 — GPU voice cloning (multilingual, ~4-6 GB VRAM)
+FROM nvidia/cuda:12.6.3-runtime-ubuntu24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv ffmpeg \
+        ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# PyTorch is NOT a default dependency of coqui-tts (it is an optional extra so
+# the user can pick the right CUDA build). Install the CUDA wheels explicitly
+# first. coqui-tts 0.27.5 requires transformers>=4.57, which references
+# torch.float8_e8m0fnu (introduced in torch 2.7) — so torch must be >=2.7.
+# torch 2.7 wheels ship on the cu126 index (cu124 was dropped). coqui-tts
+# 0.27.5 registers XTTS safe-globals, so torch 2.7's weights_only default is OK.
+ARG TORCH_VERSION=2.7.1
+RUN pip install --no-cache-dir --break-system-packages \
+        torch==${TORCH_VERSION} torchaudio==${TORCH_VERSION} \
+        --index-url https://download.pytorch.org/whl/cu126
+
+# Pin transformers to the latest 4.x. coqui-tts 0.27.5 declares "transformers"
+# with no upper bound, so pip otherwise pulls the 5.x line, which removed
+# transformers.pytorch_utils.isin_mps_friendly that coqui-tts still imports.
+# 4.57.6 keeps that symbol and is compatible with torch 2.7.x (float8_e8m0fnu).
+ARG COQUI_TTS_VERSION=0.27.5
+ARG TRANSFORMERS_VERSION=4.57.6
+RUN pip install --no-cache-dir --break-system-packages \
+        coqui-tts==${COQUI_TTS_VERSION} \
+        transformers==${TRANSFORMERS_VERSION}
+
+# Pre-download XTTS v2 model into the image layer
+# (subsequently mounted via volume for warm cache across container restarts)
+ENV COQUI_TOS_AGREED=1
+RUN python3 -c "from TTS.api import TTS; \
+    TTS('tts_models/multilingual/multi-dataset/xtts_v2', progress_bar=False); \
+    print('XTTS v2 model verified')"
+
+LABEL puma_info="true" gpu="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]
