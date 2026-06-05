@@ -1,0 +1,15 @@
+# Group A · Foundation
+# Defines only the shared isolated network. Other stacks attach to it
+# as an external network.
+
+name: puma_info_foundation
+
+networks:
+  default:
+    name: puma_info_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+    labels:
+      puma_info: "true"

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+.npm/
+
+# Outputs (regeneratable)
+output/
+compositions/*/render/
+compositions/*/audio/*.wav
+compositions/*/audio/*.mp3
+manim_scenes/media/
+documents/_book/
+documents/_site/
+imagery/generated/
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+credentials*.json
+client_secret*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Docker
+.docker_cache/
+
+# Approvals (per-checkout, do not commit)
+approvals/*
+!approvals/.gitkeep
