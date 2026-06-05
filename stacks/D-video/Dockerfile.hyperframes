@@ -1,0 +1,22 @@
+# HyperFrames — HTML→MP4 deterministic video renderer
+FROM node:22-bookworm-slim
+
+# Chromium for headless rendering, FFmpeg for video, git for skills
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        chromium ffmpeg git ca-certificates curl \
+        # Puppeteer/Chromium runtime deps
+        libgbm1 libnss3 libxss1 libasound2 \
+        fonts-noto-color-emoji fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV NODE_ENV=production
+
+ARG HYPERFRAMES_VERSION=0.6.74
+RUN npm install -g --no-audit hyperframes@${HYPERFRAMES_VERSION}
+
+LABEL puma_info="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]

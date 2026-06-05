@@ -1,0 +1,50 @@
+# Group D · Video composition and rendering
+# CPU-only services. No GPU reservation.
+# Both on-demand under profile `video`.
+
+name: puma_info_video
+
+services:
+
+  hyperframes:
+    build:
+      context: .
+      dockerfile: Dockerfile.hyperframes
+    image: pumacp/puma-info-hyperframes:0.1.0
+    container_name: puma_info_hyperframes
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../../compositions:/work/compositions
+      - ../../output:/work/output
+      - puma_info_hyperframes_npm:/root/.npm
+    labels:
+      puma_info: "true"
+    profiles: ["video"]
+    networks:
+      - default
+
+  manim:
+    build:
+      context: .
+      dockerfile: Dockerfile.manim
+    image: pumacp/puma-info-manim:0.1.0
+    container_name: puma_info_manim
+    volumes:
+      - ../../manim_scenes:/manim
+      - ../../output:/output
+    labels:
+      puma_info: "true"
+    profiles: ["video"]
+    networks:
+      - default
+
+volumes:
+  puma_info_hyperframes_npm:
+    labels:
+      puma_info: "true"
+
+networks:
+  default:
+    external: true
+    name: puma_info_network

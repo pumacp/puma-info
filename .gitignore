@@ -23,6 +23,17 @@ documents/_book/
 documents/_site/
 imagery/generated/
 
+# Group D · Video (regeneratable / not tracked)
+compositions/*/.hyperframes/
+compositions/*/node_modules/
+compositions/*/preview/
+manim_scenes/__pycache__/
+# HyperFrames skill bundles install locally per checkout, never tracked.
+# The `skills` CLI installs an agent-agnostic bundle under .agents/; some
+# agents use .claude/ — ignore both so the public remote stays brand-free.
+compositions/*/.agents/
+compositions/*/.claude/
+
 # Secrets
 .env
 .env.*

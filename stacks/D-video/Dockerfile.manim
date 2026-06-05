@@ -1,0 +1,12 @@
+# Manim Community Edition — mathematical animation library
+FROM manimcommunity/manim:v0.20.1
+
+LABEL puma_info="true"
+
+WORKDIR /manim
+USER root
+
+# The base image's entrypoint is bash, which exits under `up -d`; reset it
+# and keep the container alive so the docker-exec render targets can run.
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

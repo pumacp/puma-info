@@ -124,3 +124,56 @@ voice-test-xtts: voice-up-xtts ## Verify XTTS v2 starts and model loads
 
 voice-down: ## Stop all Group C services
 	cd stacks/C-voice && docker compose --profile voice down
+
+# === Group D · Video ===
+
+video-build: ## Build HyperFrames and Manim images
+	cd stacks/D-video && docker compose --profile video build hyperframes manim
+
+video-up: ## Start both video services
+	cd stacks/D-video && docker compose --profile video up -d hyperframes manim
+	@docker ps --filter "label=puma_info=true" --filter "name=puma_info_(hyperframes|manim)" \
+		--format "  {{.Names}}: {{.Status}}"
+
+video-install-skills: video-up ## Install HyperFrames skills into compositions/_template/
+	mkdir -p compositions/_template
+	docker exec puma_info_hyperframes bash -c \
+		"cd /work/compositions/_template && GIT_LFS_SKIP_SMUDGE=1 npx skills add heygen-com/hyperframes --yes"
+	@echo "Skills installed. Use 'make video-new-composition NAME=<id>' to clone."
+
+video-new-composition: ## Clone the skills template to a new composition (NAME=<id>)
+	@if [ -z "$(NAME)" ]; then \
+		echo "ERROR: NAME=<video-id> required"; exit 1; \
+	fi
+	@if [ -d "compositions/$(NAME)" ]; then \
+		echo "ERROR: compositions/$(NAME) already exists"; exit 1; \
+	fi
+	@if [ ! -d "compositions/_template" ]; then \
+		echo "ERROR: run 'make video-install-skills' first"; exit 1; \
+	fi
+	cp -r compositions/_template "compositions/$(NAME)"
+	@echo "Created compositions/$(NAME)"
+
+video-preview: ## Launch HyperFrames preview server (NAME=<id>)
+	@if [ -z "$(NAME)" ]; then echo "ERROR: NAME=<id> required"; exit 1; fi
+	docker exec -d puma_info_hyperframes bash -c \
+		"cd /work/compositions/$(NAME) && npx hyperframes preview --port 3000"
+	@echo "Preview at http://localhost:3001"
+
+video-render: ## Render compositions/<id> to output/<id>.mp4 (NAME=<id>)
+	@if [ -z "$(NAME)" ]; then echo "ERROR: NAME=<id> required"; exit 1; fi
+	python3 orchestrator/scripts/03_render_video.py --composition $(NAME)
+
+video-test-hyperframes: video-up ## End-to-end smoke test (initialize + render)
+	bash stacks/D-video/smoke_test_hyperframes.sh
+
+video-test-manim: video-up ## End-to-end smoke test (Manim scene)
+	bash stacks/D-video/smoke_test_manim.sh
+
+manim-render: ## Render a Manim scene (SCENE=<file>:<class>)
+	@if [ -z "$(SCENE)" ]; then echo "ERROR: SCENE=<file>:<class> required"; exit 1; fi
+	@file=$$(echo $(SCENE) | cut -d: -f1); cls=$$(echo $(SCENE) | cut -d: -f2); \
+	docker exec puma_info_manim manim -qh "/manim/$$file" $$cls
+
+video-down: ## Stop both video services
+	cd stacks/D-video && docker compose --profile video down
