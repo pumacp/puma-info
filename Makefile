@@ -51,7 +51,7 @@ doctor: ## Verify environment health
 		--format "  {{.Names}}: {{.Status}}"
 	@echo ""
 	@echo "=== Disk ==="
-	@df -h ~/Projects/tfg/ | tail -1
+	@df -h . | tail -1
 
 # === Cleanup (safe — only puma_info-labeled resources) ===
 cleanup: ## Remove ALL puma_info resources (containers, volumes, network)

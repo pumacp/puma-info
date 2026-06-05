@@ -1,7 +1,7 @@
 # puma-info — Agent operating instructions
 
 You are working inside the `puma-info` subproject of the PUMA
-Project, at `~/Projects/tfg/puma-info`. This subproject produces
+Project, at the puma-info repository root. This subproject produces
 public, multi-format, multi-language information artifacts about
 PUMA: videos, translated PDFs, slides, posters, infographics,
 documentation sites.
@@ -70,8 +70,10 @@ service is active.
 ## Style
 
   - English-first for code, documentation, prompts.
-  - Spanish only where explicitly required (defense video script,
-    Spanish-targeted YouTube descriptions).
+  - Spanish is used only inside subtitle tracks of videos
+    whose original audio is Spanish, and in localised YouTube
+    descriptions targeted at Spanish-speaking audiences. Never
+    in committed source files of this repository.
   - Conventional commits.
   - Constitution-style hard rules in `docs/constitution.md`.
 
