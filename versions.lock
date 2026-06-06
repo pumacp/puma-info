@@ -48,3 +48,17 @@ google-auth-httplib2==0.4.0
 jsonschema==4.26.0
 pumacp/puma-info-whisperx:0.1.0 (built locally, image ID sha256:7a79f23e05670b2defcd24463a76b76431b5940e330c2d1cd6e10729cb42507e)
 pumacp/puma-info-uploader:0.1.0 (built locally, image ID sha256:0cf6017b5bc96ab8f5794be18db05556f823bd4708320f36536b0057c814cac9)
+
+# Group F (added 2026-06-05)
+ghcr.io/quarto-dev/quarto:1.9.38@sha256:cdc12093a8fd224993a9e4643dd479f23727d7618031e84b3884065e0f9160f1
+node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
+debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
+@marp-team/marp-cli@4.4.0
+@mermaid-js/mermaid-cli@11.15.0
+inkscape (debian package) 1.2.2-2+b1
+chromium (debian package) 148.0.7778.215-1~deb12u1
+# TinyTeX installed into the Quarto image via `quarto install tinytex` (needs xz-utils).
+TinyTeX v2026.06
+pumacp/puma-info-quarto:0.1.0 (built locally, image ID sha256:8d135496c67daa8a7d21f86ba027e7a7f19c06983a0f857ed984e1278cb57cdb)
+pumacp/puma-info-marp-mermaid:0.1.0 (built locally, image ID sha256:36aae13c06f26456c43f503b4bab5c16b71699d2fbfe720ead6cc5701adef54d)
+pumacp/puma-info-inkscape:0.1.0 (built locally, image ID sha256:5afa86ceeed4a12470de52883f8118ce04d34f8106bf96988fe4b3f8597229f8)
