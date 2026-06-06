@@ -32,3 +32,19 @@ pumacp/puma-info-hyperframes:0.1.0 (built locally, image ID sha256:f9b159e473320
 pumacp/puma-info-manim:0.1.0 (built locally, image ID sha256:bf624d5a1cf4456f247a2c7efa4aeb4f0160afb30e99244ec0297bcb48ada5f7)
 # Skills bundle is regenerated locally (.agents/skills/), never tracked; source commit pinned for reproducibility.
 HyperFrames skills bundle: heygen-com/hyperframes @ bacfb17538ae2c79343e816dd03d6a62f2d0163c
+
+# Group E (added 2026-06-05)
+nvidia/cuda:12.6.3-runtime-ubuntu24.04@sha256:92906d87596d638d35015c6353053121bd299d25943b875763321653884ba924
+# WhisperX image pins torch 2.8.0 (whisperx 3.8.6 requires torch~=2.8.0); independent of XTTS's 2.7.1.
+torch==2.8.0 (cu126)
+torchaudio==2.8.0 (cu126)
+whisperx==3.8.6
+WhisperX ASR model: large-v3 (faster-whisper CTranslate2)
+python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+google-api-python-client==2.197.0
+google-auth==2.53.0
+google-auth-oauthlib==1.4.0
+google-auth-httplib2==0.4.0
+jsonschema==4.26.0
+pumacp/puma-info-whisperx:0.1.0 (built locally, image ID sha256:7a79f23e05670b2defcd24463a76b76431b5940e330c2d1cd6e10729cb42507e)
+pumacp/puma-info-uploader:0.1.0 (built locally, image ID sha256:0cf6017b5bc96ab8f5794be18db05556f823bd4708320f36536b0057c814cac9)
