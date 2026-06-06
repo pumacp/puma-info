@@ -1,0 +1,11 @@
+# Inkscape — SVG manipulation and batch conversion
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        inkscape ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+LABEL puma_info="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]

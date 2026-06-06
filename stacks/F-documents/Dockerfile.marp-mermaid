@@ -1,0 +1,29 @@
+# Marp CLI + Mermaid CLI — Markdown slide decks and diagram rendering
+FROM node:22-bookworm-slim
+
+# Chromium for Puppeteer (Marp + Mermaid both depend on it for PDF/PNG)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        chromium ca-certificates \
+        libgbm1 libnss3 libxss1 libasound2 \
+        fonts-noto-color-emoji fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# Marp resolves Chromium via CHROME_PATH; Mermaid via PUPPETEER_EXECUTABLE_PATH.
+ENV CHROME_PATH=/usr/bin/chromium
+
+# mmdc runs Chromium as root, which requires --no-sandbox. Bake a puppeteer
+# config and pass it with `mmdc -p /puppeteer-config.json`.
+RUN printf '{"args":["--no-sandbox","--disable-setuid-sandbox"]}\n' > /puppeteer-config.json
+
+ARG MARP_VERSION=4.4.0
+ARG MERMAID_VERSION=11.15.0
+RUN npm install -g --no-audit \
+        @marp-team/marp-cli@${MARP_VERSION} \
+        @mermaid-js/mermaid-cli@${MERMAID_VERSION}
+
+LABEL puma_info="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]

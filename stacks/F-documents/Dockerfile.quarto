@@ -1,0 +1,15 @@
+# Quarto — academic multi-format publishing
+FROM ghcr.io/quarto-dev/quarto:1.9.38
+
+LABEL puma_info="true"
+
+# The official Quarto image ships Quarto + Pandoc but NOT a TeX engine, and it
+# lacks xz-utils (needed to unpack the TinyTeX .tar.xz). Install both, then
+# TinyTeX; Quarto auto-installs any missing LaTeX packages at render time.
+RUN apt-get update && apt-get install -y --no-install-recommends xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+RUN quarto install tinytex --no-prompt
+
+WORKDIR /work
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

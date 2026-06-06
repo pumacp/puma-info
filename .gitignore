@@ -26,6 +26,12 @@ documents/_book/
 documents/_site/
 imagery/generated/
 
+# Group F · Documents (generated outputs / build side-files)
+documents/quarto/*_files/
+documents/quarto/*.html
+documents/quarto/.quarto/
+documents/marp/*.html
+
 # Group D · Video (regeneratable / not tracked)
 compositions/*/.hyperframes/
 compositions/*/node_modules/

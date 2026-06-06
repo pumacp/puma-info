@@ -1,0 +1,20 @@
+---
+title: "PUMA Smoke Test"
+author: "PUMA Project Contributors"
+format: pdf
+---
+
+# Introduction
+
+This is a smoke test for the Quarto rendering pipeline in puma-info.
+The PUMA Project benchmarks local language models on ICT project
+management tasks. Energy is given by $E = mc^2$, of course.
+
+# Method
+
+Quarto compiles this `.qmd` file through Pandoc to LaTeX, then
+through TinyTeX to PDF, deterministically.
+
+# Result
+
+If you can read this in `output/test.pdf`, the toolchain works.

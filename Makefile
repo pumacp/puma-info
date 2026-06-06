@@ -233,3 +233,61 @@ approvals/03_youtube_credentials_approved:
 	@echo "  3. Run 'make publish-auth' once to complete OAuth flow"
 	@echo "  4. touch approvals/03_youtube_credentials_approved"
 	@exit 1
+
+# === Group F · Documents ===
+
+docs-build: ## Build all Group F images (quarto, marp-mermaid, inkscape)
+	cd stacks/F-documents && docker compose --profile documents build
+
+docs-up: ## Start all docs services
+	cd stacks/F-documents && docker compose --profile documents up -d
+	@docker ps --filter "label=puma_info=true" \
+		--filter "name=puma_info_(quarto|marp_mermaid|inkscape)" \
+		--format "  {{.Names}}: {{.Status}}"
+
+docs-test-quarto: docs-up ## Smoke test Quarto
+	bash stacks/F-documents/smoke_test_quarto.sh
+
+docs-test-marp: docs-up ## Smoke test Marp
+	bash stacks/F-documents/smoke_test_marp.sh
+
+docs-test-mermaid: docs-up ## Smoke test Mermaid
+	bash stacks/F-documents/smoke_test_mermaid.sh
+
+docs-test-inkscape: docs-up ## Smoke test Inkscape
+	bash stacks/F-documents/smoke_test_inkscape.sh
+
+docs-test-all: docs-test-quarto docs-test-marp docs-test-mermaid docs-test-inkscape ## Run all Group F smoke tests
+	@echo "All Group F smoke tests PASSED."
+
+quarto-render: docs-up ## Render a Quarto file (FILE=<path>, FORMAT=<pdf|html|docx>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_quarto quarto render "/work/$(FILE)" \
+		--to "$${FORMAT:-pdf}" --output-dir /work/output
+
+marp-render: docs-up ## Render a Marp deck (FILE=<path>, FORMAT=<pdf|pptx|html>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_marp_mermaid marp "/work/$(FILE)" \
+		-o "/work/output/$$(basename $(FILE) .md).$${FORMAT:-pdf}" \
+		--allow-local-files
+
+mermaid-render: docs-up ## Render a Mermaid diagram (FILE=<path>, FORMAT=<png|svg|pdf>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_marp_mermaid mmdc \
+		-i "/work/$(FILE)" \
+		-o "/work/output/$$(basename $(FILE) .mmd).$${FORMAT:-png}" \
+		-p /puppeteer-config.json
+
+inkscape-convert: docs-up ## Convert SVG (FILE=<path>, FORMAT=<png|pdf>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_inkscape inkscape "/work/$(FILE)" \
+		--export-type="$${FORMAT:-png}" \
+		--export-filename="/work/output/$$(basename $(FILE) .svg).$${FORMAT:-png}"
+
+pandoc-convert: docs-up ## Convert via Pandoc (bundled with Quarto) (FILE=<path>, FORMAT=<docx|html|epub>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_quarto pandoc "/work/$(FILE)" \
+		-o "/work/output/$$(basename $(FILE) .md).$${FORMAT:-docx}"
+
+docs-down: ## Stop all docs services
+	cd stacks/F-documents && docker compose --profile documents down
