@@ -1,3 +1,6 @@
+# Private staging — never published (e.g. wiki working copy)
+_private/
+
 # Python
 __pycache__/
 *.py[cod]
