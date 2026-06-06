@@ -177,3 +177,59 @@ manim-render: ## Render a Manim scene (SCENE=<file>:<class>)
 
 video-down: ## Stop both video services
 	cd stacks/D-video && docker compose --profile video down
+
+# === Group E · Publish ===
+
+publish-build: ## Build WhisperX and uploader images
+	cd stacks/E-publish && docker compose --profile publish build whisperx uploader
+
+publish-up-whisper: gpu-available ## Start WhisperX (GPU)
+	cd stacks/E-publish && docker compose --profile publish up -d whisperx
+	@docker ps --filter "name=^puma_info_whisper$$" \
+		--format "  {{.Names}}: {{.Status}}"
+
+publish-up-uploader: ## Start uploader (CPU)
+	cd stacks/E-publish && docker compose --profile publish up -d uploader
+	@docker ps --filter "name=^puma_info_uploader$$" \
+		--format "  {{.Names}}: {{.Status}}"
+
+publish-test-whisper: publish-up-whisper ## Smoke test WhisperX end-to-end
+	bash stacks/E-publish/smoke_test_whisper.sh
+
+publish-test-uploader: publish-up-uploader ## Smoke test uploader (dry-run)
+	bash stacks/E-publish/smoke_test_uploader.sh
+
+publish-auth: publish-up-uploader ## Interactive OAuth flow (one-time)
+	@if [ ! -f secrets/youtube_credentials.json ]; then \
+		echo "ERROR: secrets/youtube_credentials.json missing."; \
+		echo "Obtain it from Google Cloud Console (see stacks/E-publish/README.md)."; \
+		exit 1; \
+	fi
+	docker exec -it puma_info_uploader python3 \
+		/work/orchestrator/scripts/07_upload_youtube.py --auth-only
+
+subs-%: publish-up-whisper ## Generate SRT for output/%.mp4
+	python3 orchestrator/scripts/04_generate_subtitles.py --video $*
+
+metadata-%: ## Generate metadata.json template for specs/%.json
+	python3 orchestrator/scripts/06_generate_metadata.py --spec specs/$*.json
+
+upload-dry-%: publish-up-uploader ## Dry-run YouTube upload (no API call)
+	docker exec puma_info_uploader python3 \
+		/work/orchestrator/scripts/07_upload_youtube.py --video $* --dry-run
+
+upload-%: approvals/03_youtube_credentials_approved publish-up-uploader ## Real YouTube upload
+	docker exec puma_info_uploader python3 \
+		/work/orchestrator/scripts/07_upload_youtube.py --video $*
+
+publish-down: ## Stop publish services
+	cd stacks/E-publish && docker compose --profile publish down
+
+approvals/03_youtube_credentials_approved:
+	@echo "ERROR: YouTube credentials approval required."
+	@echo "Steps:"
+	@echo "  1. Set up Google Cloud project + enable YouTube Data API v3"
+	@echo "  2. Download OAuth credentials.json to secrets/youtube_credentials.json"
+	@echo "  3. Run 'make publish-auth' once to complete OAuth flow"
+	@echo "  4. touch approvals/03_youtube_credentials_approved"
+	@exit 1

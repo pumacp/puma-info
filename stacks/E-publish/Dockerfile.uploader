@@ -1,0 +1,19 @@
+# YouTube Data API v3 uploader (CPU)
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG GAPI_CLIENT_VERSION=2.197.0
+RUN pip install --no-cache-dir \
+        google-api-python-client==${GAPI_CLIENT_VERSION} \
+        google-auth \
+        google-auth-oauthlib \
+        google-auth-httplib2 \
+        jsonschema
+
+LABEL puma_info="true"
+
+WORKDIR /work
+CMD ["sleep", "infinity"]

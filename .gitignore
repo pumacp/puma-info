@@ -33,6 +33,8 @@ manim_scenes/__pycache__/
 # agents use .claude/ — ignore both so the public remote stays brand-free.
 compositions/*/.agents/
 compositions/*/.claude/
+# Skills-installer lock file (regenerated locally, not tracked)
+compositions/*/skills-lock.json
 
 # Secrets
 .env

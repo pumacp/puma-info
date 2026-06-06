@@ -1,0 +1,56 @@
+# Group E · Publish
+# WhisperX (GPU) + YouTube uploader (CPU). Both on-demand under
+# profile `publish`.
+
+name: puma_info_publish
+
+services:
+
+  whisperx:
+    build:
+      context: .
+      dockerfile: Dockerfile.whisper
+    image: pumacp/puma-info-whisperx:0.1.0
+    container_name: puma_info_whisper
+    volumes:
+      - ../../output:/work
+      - puma_info_whisper_models:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    labels:
+      puma_info: "true"
+      gpu: "true"
+    profiles: ["publish"]
+    networks:
+      - default
+
+  uploader:
+    build:
+      context: .
+      dockerfile: Dockerfile.uploader
+    image: pumacp/puma-info-uploader:0.1.0
+    container_name: puma_info_uploader
+    volumes:
+      - ../../output:/work/output
+      - ../../secrets:/work/secrets:ro
+      - ../../orchestrator:/work/orchestrator:ro
+    labels:
+      puma_info: "true"
+    profiles: ["publish"]
+    networks:
+      - default
+
+volumes:
+  puma_info_whisper_models:
+    labels:
+      puma_info: "true"
+
+networks:
+  default:
+    external: true
+    name: puma_info_network
