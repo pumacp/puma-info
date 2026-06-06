@@ -21,3 +21,4 @@ puma-info subproject, per principle C-4 of the constitution
 | 2026-06-05 | document render | Group F Quarto smoke test | Rendered documents/quarto/test.qmd to PDF (20082 B, 5s, lualatex; TinyTeX auto-installed packages) | PASS |
 | 2026-06-05 | document render | Group F Marp smoke test | Rendered documents/marp/test.md (3 slides) to PDF (25750 B, 2s) via Chromium | PASS |
 | 2026-06-05 | document render | Group F Mermaid + Inkscape smoke tests | Mermaid rendered test.mmd to PNG (5186 B, mmdc --no-sandbox); Inkscape exported a synthetic SVG to PNG (4072 B) | PASS |
+| 2026-06-05 | consolidation | Final consolidation: tools inventory, license matrix, reproducibility report | TOOLS_INVENTORY.md + LICENSE_MATRIX.md + REPRODUCIBILITY_REPORT.md | PASS |
