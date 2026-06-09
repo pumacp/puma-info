@@ -160,9 +160,9 @@ video-preview: ## Launch HyperFrames preview server (NAME=<id>)
 		"cd /work/compositions/$(NAME) && npx hyperframes preview --port 3000"
 	@echo "Preview at http://localhost:3001"
 
-video-render: ## Render compositions/<id> to output/<id>.mp4 (NAME=<id>)
+video-render: ## Render compositions/<id> to output/<id>.mp4 (NAME=<id> [PROJECT=public/<id>|_private/<id>])
 	@if [ -z "$(NAME)" ]; then echo "ERROR: NAME=<id> required"; exit 1; fi
-	python3 orchestrator/scripts/03_render_video.py --composition $(NAME)
+	python3 orchestrator/scripts/03_render_video.py --composition $(NAME)$(if $(filter command line,$(origin PROJECT)), --project $(PROJECT))
 
 video-test-hyperframes: video-up ## End-to-end smoke test (initialize + render)
 	bash stacks/D-video/smoke_test_hyperframes.sh
@@ -212,8 +212,8 @@ publish-auth: publish-up-uploader ## Interactive OAuth flow (one-time)
 	docker exec -it puma_info_uploader python3 \
 		/work/orchestrator/scripts/07_upload_youtube.py --auth-only
 
-subs-%: publish-up-whisper ## Generate SRT for output/%.mp4
-	python3 orchestrator/scripts/04_generate_subtitles.py --video $*
+subs-%: publish-up-whisper ## Generate SRT for output/%.mp4 [PROJECT=public/<id>|_private/<id>]
+	python3 orchestrator/scripts/04_generate_subtitles.py --video $*$(if $(filter command line,$(origin PROJECT)), --project $(PROJECT))
 
 metadata-%: ## Generate metadata.json template for specs/%.json
 	python3 orchestrator/scripts/06_generate_metadata.py --spec specs/$*.json
