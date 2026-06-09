@@ -291,3 +291,27 @@ pandoc-convert: docs-up ## Convert via Pandoc (bundled with Quarto) (FILE=<path>
 
 docs-down: ## Stop all docs services
 	cd stacks/F-documents && docker compose --profile documents down
+
+video-convert: video-up ## Convert/scale a video with ffmpeg (FILE=<path under compositions/ or output/>, FORMAT=<mp4|webm|mov>, RESOLUTION=<1080p|720p|4k>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	@fmt="$${FORMAT:-mp4}"; \
+	case "$$fmt" in \
+		mp4|mov) codecs="-c:v libx264 -c:a aac";; \
+		webm)    codecs="-c:v libvpx-vp9 -c:a libopus";; \
+		*) echo "ERROR: FORMAT must be mp4|webm|mov"; exit 1;; \
+	esac; \
+	case "$${RESOLUTION:-}" in \
+		1080p) scale="-vf scale=-2:1080";; \
+		720p)  scale="-vf scale=-2:720";; \
+		4k)    scale="-vf scale=-2:2160";; \
+		"")    scale="";; \
+		*) echo "ERROR: RESOLUTION must be 1080p|720p|4k"; exit 1;; \
+	esac; \
+	out="output/$$(basename "$(FILE)" | sed 's/\.[^.]*$$//').$$fmt"; \
+	docker exec puma_info_hyperframes ffmpeg -y -i "/work/$(FILE)" $$scale $$codecs "/work/$$out"; \
+	echo "Wrote $$out"
+
+doc-ingest: docs-up ## Ingest a .docx (e.g. exported from Google Docs) to Markdown/HTML (FILE=<path under documents/>, FORMAT=<md|html>)
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	docker exec puma_info_quarto pandoc "/work/$(FILE)" \
+		-o "/work/documents/$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
