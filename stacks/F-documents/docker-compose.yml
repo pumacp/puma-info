@@ -56,6 +56,23 @@ services:
     networks:
       - default
 
+  libreoffice:
+    build:
+      context: .
+      dockerfile: Dockerfile.libreoffice
+    image: pumacp/puma-info-libreoffice:0.1.0
+    container_name: puma_info_libreoffice
+    volumes:
+      - ../../documents:/work/documents
+      - ../../output:/work/output
+      - ../../public:/work/public
+      - ../../_private:/work/_private
+    labels:
+      puma_info: "true"
+    profiles: ["documents"]
+    networks:
+      - default
+
 networks:
   default:
     external: true

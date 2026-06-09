@@ -62,3 +62,9 @@ TinyTeX v2026.06
 pumacp/puma-info-quarto:0.1.0 (built locally, image ID sha256:8d135496c67daa8a7d21f86ba027e7a7f19c06983a0f857ed984e1278cb57cdb)
 pumacp/puma-info-marp-mermaid:0.1.0 (built locally, image ID sha256:36aae13c06f26456c43f503b4bab5c16b71699d2fbfe720ead6cc5701adef54d)
 pumacp/puma-info-inkscape:0.1.0 (built locally, image ID sha256:5afa86ceeed4a12470de52883f8118ce04d34f8106bf96988fe4b3f8597229f8)
+# Group F additions (Increment 3 — LibreOffice, slides import)
+debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
+libreoffice-impress (debian package) 4:7.4.7-1+deb12u12
+libreoffice-writer (debian package) 4:7.4.7-1+deb12u12
+fonts-liberation (debian package) 1:1.07.4-11
+pumacp/puma-info-libreoffice:0.1.0 (built locally, image ID sha256:fa52e0a13dab2f4a34ae83ad52240214359264af708dcaf185e2d018c240d28b)

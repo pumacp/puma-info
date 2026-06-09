@@ -34,6 +34,9 @@ does not read PDF input).
   > Caveat: Marp's `.pptx` renders each slide as an **image**; Google
   > Slides imports it but the slides are **not natively editable** (no
   > editable text/shapes).
+- **Google Slides (editable)** ← `make slides-export FILE=<f.md|.docx>` →
+  `output/<f>.pptx` with **real editable shapes/text** (pandoc), unlike
+  Marp's image slides.
 - **Google Docs** ← `make quarto-render FILE=<f> FORMAT=docx` (or
   `make pandoc-convert FILE=<f> FORMAT=docx`) → `output/<f>.docx`, which
   Google Docs imports cleanly.
@@ -43,10 +46,12 @@ does not read PDF input).
 | Target | Tool | In → out |
 |--------|------|----------|
 | `make doc-ingest FILE=documents/<f>.docx FORMAT=<md\|html>` | Pandoc | `.docx` (exported from Google Docs) → `documents/<f>.md` |
+| `make pptx-ingest FILE=<f>.pptx FORMAT=<pdf\|html>` | LibreOffice | `.pptx` (exported from Google Slides) → `documents/<f>.<pdf\|html>` |
 
-> **Google Slides import (`.pptx` → local) is not supported** by the
-> current tools (Pandoc/Marp do not read `.pptx`). Use a PDF/image export
-> as the bridge, or add a `.pptx` reader if this becomes necessary.
+> **Google Slides import (`.pptx` → local) is supported** via
+> `make pptx-ingest` (LibreOffice → pdf/html). For `.pptx` → Markdown, use the
+> two-step bridge: `make pptx-ingest FILE=x.pptx FORMAT=html`, then
+> `docker exec puma_info_quarto quarto pandoc documents/x.html -o documents/x.md`.
 
 ## Per-project output (OUTDIR convention)
 

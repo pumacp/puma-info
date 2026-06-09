@@ -240,13 +240,13 @@ approvals/03_youtube_credentials_approved:
 
 # === Group F · Documents ===
 
-docs-build: ## Build all Group F images (quarto, marp-mermaid, inkscape)
+docs-build: ## Build all Group F images (quarto, marp-mermaid, inkscape, libreoffice)
 	cd stacks/F-documents && docker compose --profile documents build
 
 docs-up: ## Start all docs services
 	cd stacks/F-documents && docker compose --profile documents up -d
 	@docker ps --filter "label=puma_info=true" \
-		--filter "name=puma_info_(quarto|marp_mermaid|inkscape)" \
+		--filter "name=puma_info_(quarto|marp_mermaid|inkscape|libreoffice)" \
 		--format "  {{.Names}}: {{.Status}}"
 
 docs-test-quarto: docs-up ## Smoke test Quarto
@@ -261,7 +261,7 @@ docs-test-mermaid: docs-up ## Smoke test Mermaid
 docs-test-inkscape: docs-up ## Smoke test Inkscape
 	bash stacks/F-documents/smoke_test_inkscape.sh
 
-docs-test-all: docs-test-quarto docs-test-marp docs-test-mermaid docs-test-inkscape ## Run all Group F smoke tests
+docs-test-all: docs-test-quarto docs-test-marp docs-test-mermaid docs-test-inkscape docs-test-libreoffice ## Run all Group F smoke tests
 	@echo "All Group F smoke tests PASSED."
 
 quarto-render: docs-up ## Render a Quarto file (FILE=<path>, FORMAT=<pdf|html|docx>)
@@ -339,3 +339,21 @@ new-project: ## Scaffold a new project (NAME=<id> VISIBILITY=public|private)
 		echo "Initialized nested git in $$dest (no remote)"; \
 	fi; \
 	echo "Next: author $$dest/scripts/<video-id>/ from $$dest/scripts/_template; add a composition under $$dest/compositions/<video-id>/; render with PROJECT=$$dest"
+
+slides-export: docs-up ## Export md/docx to editable .pptx via pandoc (FILE=<f.md|.docx>) [per-project OUTDIR]
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	name=$$(basename "$(FILE)"); name=$${name%.*}; \
+	docker exec puma_info_quarto quarto pandoc "/work/$(FILE)" -o "/work/$$outdir/$$name.pptx"; \
+	echo "Wrote $$outdir/$$name.pptx"
+
+pptx-ingest: docs-up ## Import .pptx to pdf|html via LibreOffice (FILE=<f.pptx>, FORMAT=<pdf|html>) [per-project; pptx->md: html+pandoc bridge, see docs]
+	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
+	docker exec puma_info_libreoffice soffice --headless -env:UserInstallation=file:///tmp/lo --convert-to "$${FORMAT:-html}" --outdir "/work/$$docdir" "/work/$(FILE)"; \
+	echo "Wrote into $$docdir/"
+
+docs-test-libreoffice: docs-up ## Smoke test LibreOffice (slides round-trip)
+	bash stacks/F-documents/smoke_test_libreoffice.sh
