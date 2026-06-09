@@ -26,6 +26,7 @@ import argparse
 import datetime
 import hashlib
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -37,6 +38,22 @@ AI_USE_LOG = REPO / "docs" / "ai-use-log.md"
 CONTAINER = "puma_info_hyperframes"
 CONTAINER_COMPOSITIONS = "/work/compositions"
 CONTAINER_OUTPUT = "/work/output"
+
+
+def apply_project(project: str) -> None:
+    """Route all I/O under public/<id> or _private/<id>; default: repo root."""
+    global COMPOSITIONS_DIR, OUTPUT_DIR, AI_USE_LOG
+    global CONTAINER_COMPOSITIONS, CONTAINER_OUTPUT
+    if not project:
+        return
+    if not re.fullmatch(r"(public|_private)/[^/]+", project):
+        sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
+    COMPOSITIONS_DIR = REPO / project / "compositions"
+    OUTPUT_DIR = REPO / project / "output"
+    CONTAINER_COMPOSITIONS = f"/work/{project}/compositions"
+    CONTAINER_OUTPUT = f"/work/{project}/output"
+    if project.startswith("_private/"):
+        AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
 
 
 def sha256(path: pathlib.Path) -> str:
@@ -112,6 +129,7 @@ def log_row(composition: str, in_hash: str, out_hash: str, status: str) -> None:
     today = datetime.date.today().isoformat()
     row = (f"| {today} | video render | HyperFrames render: {composition} "
            f"| in:{in_hash[:12]} out:{out_hash[:12]} | {status} |\n")
+    AI_USE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AI_USE_LOG.open("a", encoding="utf-8") as handle:
         handle.write(row)
 
@@ -125,7 +143,10 @@ def main() -> int:
                         help="launch the preview server instead of rendering")
     parser.add_argument("--dry-run", action="store_true",
                         help="print docker commands without executing")
+    parser.add_argument("--project",
+                        help="route I/O under public/<id> or _private/<id> (default: repo root)")
     args = parser.parse_args()
+    apply_project(args.project)
     if args.preview:
         return preview(args.composition, args.dry_run)
     return render(args.composition, args.audio, args.dry_run)

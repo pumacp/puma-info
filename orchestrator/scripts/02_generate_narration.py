@@ -55,6 +55,19 @@ PAUSE_SECONDS = {"[PAUSE]": 0.40, "[FINAL PAUSE]": 0.80}
 MARKER_RE = re.compile(r"(\[FINAL PAUSE\]|\[PAUSE\]|\[EMPHASIS\])")
 
 
+def apply_project(project: str) -> None:
+    """Route all I/O under public/<id> or _private/<id>; default: repo root."""
+    global COMPOSITIONS_DIR, AI_USE_LOG, CONTAINER_COMPOSITIONS
+    if not project:
+        return
+    if not re.fullmatch(r"(public|_private)/[^/]+", project):
+        sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
+    COMPOSITIONS_DIR = REPO / project / "compositions"
+    CONTAINER_COMPOSITIONS = f"/work/{project}/compositions"
+    if project.startswith("_private/"):
+        AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
+
+
 def load_spec(spec_path: pathlib.Path) -> dict:
     """Load and minimally validate a video spec JSON."""
     with spec_path.open(encoding="utf-8") as handle:
@@ -149,6 +162,7 @@ def log_row(video: str, engine: str, status: str) -> None:
     today = datetime.date.today().isoformat()
     row = (f"| {today} | TTS | Narration synthesis ({engine}) for {video} "
            f"| narration.wav + timing.json | {status} |\n")
+    AI_USE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AI_USE_LOG.open("a", encoding="utf-8") as handle:
         handle.write(row)
 
@@ -163,7 +177,10 @@ def main() -> int:
     parser.add_argument("--single-scene", help="only synthesize this scene id")
     parser.add_argument("--dry-run", action="store_true",
                         help="print docker commands without executing")
+    parser.add_argument("--project",
+                        help="route I/O under public/<id> or _private/<id> (default: repo root)")
     args = parser.parse_args()
+    apply_project(args.project)
 
     spec_path = pathlib.Path(args.spec)
     if not spec_path.is_file():

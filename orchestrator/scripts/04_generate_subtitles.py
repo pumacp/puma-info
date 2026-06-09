@@ -33,6 +33,22 @@ MODEL = "large-v3"
 ACRONYMS = ["PUMA", "API", "DSR", "MAE", "F1", "LLM", "PMO", "JSON", "CSV"]
 
 
+PROJECT = ""
+
+
+def apply_project(project: str) -> None:
+    """Route all I/O under public/<id> or _private/<id>; default: repo root."""
+    global OUTPUT_DIR, AI_USE_LOG, PROJECT
+    if not project:
+        return
+    if not re.fullmatch(r"(public|_private)/[^/]+", project):
+        sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
+    PROJECT = project
+    OUTPUT_DIR = REPO / project / "output"
+    if project.startswith("_private/"):
+        AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
+
+
 def run(cmd, dry_run):
     print("  $ " + " ".join(cmd))
     if dry_run:
@@ -51,6 +67,7 @@ def log_row(video, lang, status):
     today = datetime.date.today().isoformat()
     row = (f"| {today} | transcription | WhisperX SRT ({lang}) for {video} "
            f"| {video}.{lang}.srt | {status} |\n")
+    AI_USE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AI_USE_LOG.open("a", encoding="utf-8") as fh:
         fh.write(row)
 
@@ -62,20 +79,30 @@ def main():
     p.add_argument("--review", action="store_true",
                    help="open the resulting SRT in $EDITOR for manual fixes")
     p.add_argument("--dry-run", action="store_true", help="print commands only")
+    p.add_argument("--project",
+                   help="route I/O under public/<id> or _private/<id> (default: repo root)")
     args = p.parse_args()
+    apply_project(args.project)
 
     mp4 = OUTPUT_DIR / f"{args.video}.mp4"
     if not mp4.is_file() and not args.dry_run:
         print(f"ERROR: input MP4 not found: {mp4}", file=sys.stderr)
         return 2
 
+    # whisper mounts output/ at /work; per-project trees nest at /work/<project>/.
+    if PROJECT:
+        c_mp4 = f"/work/{PROJECT}/output/{args.video}.mp4"
+        c_outdir = f"/work/{PROJECT}/output"
+    else:
+        c_mp4 = f"{CONTAINER_WORK}/{args.video}.mp4"
+        c_outdir = CONTAINER_WORK
     cmd = ["docker", "exec", CONTAINER, "whisperx",
-           f"{CONTAINER_WORK}/{args.video}.mp4",
+           c_mp4,
            "--model", MODEL,
            "--language", args.language,
            "--compute_type", "float16",
            "--output_format", "srt",
-           "--output_dir", CONTAINER_WORK]
+           "--output_dir", c_outdir]
     print(f"[subs] {args.video} -> output/{args.video}.{args.language}.srt")
     run(cmd, args.dry_run)
     if args.dry_run:
