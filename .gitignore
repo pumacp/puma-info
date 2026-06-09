@@ -77,3 +77,9 @@ voice/reference/*.ogg
 voice/reference/*.opus
 voice/reference/*.m4a
 !voice/reference/.gitkeep
+
+# Named public projects — outputs are regeneratable (mirror of root rules)
+public/*/output/
+public/*/compositions/*/render/
+public/*/compositions/*/audio/*.wav
+public/*/manim_scenes/media/

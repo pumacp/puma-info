@@ -17,6 +17,8 @@ services:
     volumes:
       - ../../compositions:/work/compositions
       - ../../output:/work/output
+      - ../../public:/work/public
+      - ../../_private:/work/_private
       - puma_info_hyperframes_npm:/root/.npm
     labels:
       puma_info: "true"
@@ -33,6 +35,8 @@ services:
     volumes:
       - ../../manim_scenes:/manim
       - ../../output:/output
+      - ../../public:/manim/public
+      - ../../_private:/manim/_private
     labels:
       puma_info: "true"
     profiles: ["video"]
