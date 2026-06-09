@@ -15,6 +15,8 @@ services:
     volumes:
       - ../../voice/piper_models:/voices/external
       - ../../compositions:/work/compositions
+      - ../../public:/work/public
+      - ../../_private:/work/_private
       - puma_info_piper_data:/data
     labels:
       puma_info: "true"
@@ -32,6 +34,8 @@ services:
       - ../../voice/reference:/work/reference:ro
       - ../../voice/xtts_models:/work/models
       - ../../compositions:/work/compositions
+      - ../../public:/work/public
+      - ../../_private:/work/_private
       - puma_info_xtts_models:/root/.local/share/tts
     environment:
       - COQUI_TOS_AGREED=1
