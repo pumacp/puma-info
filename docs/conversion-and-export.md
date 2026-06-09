@@ -48,6 +48,30 @@ does not read PDF input).
 > current tools (Pandoc/Marp do not read `.pptx`). Use a PDF/image export
 > as the bridge, or add a `.pptx` reader if this becomes necessary.
 
+## Per-project output (OUTDIR convention)
+
+When the input path is under a named project — `public/<id>/…` or
+`_private/<id>/…` — these targets route their output into that project's
+own directory instead of the repository-root `output/`:
+
+| Target family | Root (default) | Per-project (`public/<id>/…` / `_private/<id>/…`) |
+|---|---|---|
+| quarto / marp / mermaid / inkscape / pandoc / video-convert | `output/` | `<id-prefix>/output/` |
+| doc-ingest (source ingestion) | `documents/` | `<id-prefix>/documents/` |
+| manim-render (`--media_dir`) | `manim_scenes/media/` | `<id-prefix>/manim_scenes/media/` |
+
+- A root-level input (no `public/`/`_private/` prefix) behaves **exactly as
+  before** — output goes to the repository-root directory.
+- A malformed prefix (e.g. `public/x.md`, only two segments) falls back to
+  the root default.
+- Pass `OUTDIR=<dir>` to override the auto-derived destination.
+
+> **Not yet per-project:** the Python render pipeline (`make video-render`,
+> `02_generate_narration`, `04_generate_subtitles`) still writes to the
+> root `output/` and `compositions/`. It remains **root-only until
+> sub-step 2b**, which makes the orchestrator project-aware.
+> `05_translate` keeps its own `translation/` workspace.
+
 ## Notes
 
 - Repository-wide hard rules (isolation, reproducibility, content

@@ -173,7 +173,11 @@ video-test-manim: video-up ## End-to-end smoke test (Manim scene)
 manim-render: ## Render a Manim scene (SCENE=<file>:<class>)
 	@if [ -z "$(SCENE)" ]; then echo "ERROR: SCENE=<file>:<class> required"; exit 1; fi
 	@file=$$(echo $(SCENE) | cut -d: -f1); cls=$$(echo $(SCENE) | cut -d: -f2); \
-	docker exec puma_info_manim manim -qh "/manim/$$file" $$cls
+	case "$$file" in public/*/*|_private/*/*) proj=$$(echo "$$file" | cut -d/ -f1-2);; *) proj="";; esac; \
+	if [ -n "$$OUTDIR" ]; then host="$$OUTDIR"; elif [ -n "$$proj" ]; then host="$$proj/manim_scenes/media"; else host="manim_scenes/media"; fi; \
+	case "$$host" in manim_scenes/*) cmedia="/manim/$${host#manim_scenes/}";; *) cmedia="/manim/$$host";; esac; \
+	mkdir -p "$$host"; \
+	docker exec puma_info_manim manim -qh --media_dir "$$cmedia" "/manim/$$file" $$cls
 
 video-down: ## Stop both video services
 	cd stacks/D-video && docker compose --profile video down
@@ -262,39 +266,42 @@ docs-test-all: docs-test-quarto docs-test-marp docs-test-mermaid docs-test-inksc
 
 quarto-render: docs-up ## Render a Quarto file (FILE=<path>, FORMAT=<pdf|html|docx>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_quarto quarto render "/work/$(FILE)" \
-		--to "$${FORMAT:-pdf}" --output-dir /work/output
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	docker exec puma_info_quarto quarto render "/work/$(FILE)" --to "$${FORMAT:-pdf}" --output-dir "/work/$$outdir"
 
 marp-render: docs-up ## Render a Marp deck (FILE=<path>, FORMAT=<pdf|pptx|html>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_marp_mermaid marp "/work/$(FILE)" \
-		-o "/work/output/$$(basename $(FILE) .md).$${FORMAT:-pdf}" \
-		--allow-local-files
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	docker exec puma_info_marp_mermaid marp "/work/$(FILE)" -o "/work/$$outdir/$$(basename $(FILE) .md).$${FORMAT:-pdf}" --allow-local-files
 
 mermaid-render: docs-up ## Render a Mermaid diagram (FILE=<path>, FORMAT=<png|svg|pdf>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_marp_mermaid mmdc \
-		-i "/work/$(FILE)" \
-		-o "/work/output/$$(basename $(FILE) .mmd).$${FORMAT:-png}" \
-		-p /puppeteer-config.json
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	docker exec puma_info_marp_mermaid mmdc -i "/work/$(FILE)" -o "/work/$$outdir/$$(basename $(FILE) .mmd).$${FORMAT:-png}" -p /puppeteer-config.json
 
 inkscape-convert: docs-up ## Convert SVG (FILE=<path>, FORMAT=<png|pdf>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_inkscape inkscape "/work/$(FILE)" \
-		--export-type="$${FORMAT:-png}" \
-		--export-filename="/work/output/$$(basename $(FILE) .svg).$${FORMAT:-png}"
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	docker exec puma_info_inkscape inkscape "/work/$(FILE)" --export-type="$${FORMAT:-png}" --export-filename="/work/$$outdir/$$(basename $(FILE) .svg).$${FORMAT:-png}"
 
 pandoc-convert: docs-up ## Convert via Pandoc (bundled with Quarto) (FILE=<path>, FORMAT=<docx|html|epub>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_quarto pandoc "/work/$(FILE)" \
-		-o "/work/output/$$(basename $(FILE) .md).$${FORMAT:-docx}"
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	docker exec puma_info_quarto pandoc "/work/$(FILE)" -o "/work/$$outdir/$$(basename $(FILE) .md).$${FORMAT:-docx}"
 
 docs-down: ## Stop all docs services
 	cd stacks/F-documents && docker compose --profile documents down
 
 video-convert: video-up ## Convert/scale a video with ffmpeg (FILE=<path under compositions/ or output/>, FORMAT=<mp4|webm|mov>, RESOLUTION=<1080p|720p|4k>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	@fmt="$${FORMAT:-mp4}"; \
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	outdir="$${OUTDIR:-$${proj:+$$proj/}output}"; mkdir -p "$$outdir"; \
+	fmt="$${FORMAT:-mp4}"; \
 	case "$$fmt" in \
 		mp4|mov) codecs="-c:v libx264 -c:a aac";; \
 		webm)    codecs="-c:v libvpx-vp9 -c:a libopus";; \
@@ -307,11 +314,12 @@ video-convert: video-up ## Convert/scale a video with ffmpeg (FILE=<path under c
 		"")    scale="";; \
 		*) echo "ERROR: RESOLUTION must be 1080p|720p|4k"; exit 1;; \
 	esac; \
-	out="output/$$(basename "$(FILE)" | sed 's/\.[^.]*$$//').$$fmt"; \
+	out="$$outdir/$$(basename "$(FILE)" | sed 's/\.[^.]*$$//').$$fmt"; \
 	docker exec puma_info_hyperframes ffmpeg -y -i "/work/$(FILE)" $$scale $$codecs "/work/$$out"; \
 	echo "Wrote $$out"
 
 doc-ingest: docs-up ## Ingest a .docx (e.g. exported from Google Docs) to Markdown/HTML (FILE=<path under documents/>, FORMAT=<md|html>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
-	docker exec puma_info_quarto pandoc "/work/$(FILE)" \
-		-o "/work/documents/$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
+	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
+	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
+	docker exec puma_info_quarto pandoc "/work/$(FILE)" -o "/work/$$docdir/$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
