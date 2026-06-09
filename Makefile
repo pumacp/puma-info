@@ -323,3 +323,19 @@ doc-ingest: docs-up ## Ingest a .docx (e.g. exported from Google Docs) to Markdo
 	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
 	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
 	docker exec puma_info_quarto pandoc "/work/$(FILE)" -o "/work/$$docdir/$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
+
+new-project: ## Scaffold a new project (NAME=<id> VISIBILITY=public|private)
+	@if [ -z "$(NAME)" ]; then echo "ERROR: NAME=<id> required"; exit 1; fi
+	@echo "$(NAME)" | grep -qE '^[^/]+$$' || { echo "ERROR: NAME must not contain '/'"; exit 1; }
+	@case "$(VISIBILITY)" in public|private) ;; *) echo "ERROR: VISIBILITY must be public|private"; exit 1;; esac
+	@if [ "$(VISIBILITY)" = "private" ]; then dest="_private/$(NAME)"; else dest="public/$(NAME)"; fi; \
+	if [ -e "$$dest" ]; then echo "ERROR: $$dest already exists"; exit 1; fi; \
+	mkdir -p "$$(dirname "$$dest")"; \
+	cp -r templates/project "$$dest"; \
+	echo "Created $$dest from templates/project"; \
+	if [ "$(VISIBILITY)" = "private" ]; then \
+		git init -q "$$dest"; \
+		printf '\n## Private remote (optional)\n\nIndependent nested git, no remote. To version privately:\n\n    # git remote add origin <your-private-remote-url>   # never the public puma-info remote\n' >> "$$dest/README.md"; \
+		echo "Initialized nested git in $$dest (no remote)"; \
+	fi; \
+	echo "Next: author $$dest/scripts/<video-id>/ from $$dest/scripts/_template; add a composition under $$dest/compositions/<video-id>/; render with PROJECT=$$dest"
