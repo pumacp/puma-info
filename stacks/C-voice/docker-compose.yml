@@ -34,15 +34,18 @@ services:
       dockerfile: Dockerfile.xtts
     image: pumacp/puma-info-xtts:0.1.0
     container_name: puma_info_xtts
+    # Run as the host user so cloned-voice output is host-owned, not root.
+    # Model is baked at /opt/share/tts (readable); HOME=/tmp for runtime writes.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
     volumes:
       - ../../voice/reference:/work/reference:ro
       - ../../voice/xtts_models:/work/models
       - ../../compositions:/work/compositions
       - ../../public:/work/public
       - ../../_private:/work/_private
-      - puma_info_xtts_models:/root/.local/share/tts
     environment:
       - COQUI_TOS_AGREED=1
+      - HOME=/tmp
     deploy:
       resources:
         reservations:
@@ -59,9 +62,6 @@ services:
 
 volumes:
   puma_info_piper_data:
-    labels:
-      puma_info: "true"
-  puma_info_xtts_models:
     labels:
       puma_info: "true"
 

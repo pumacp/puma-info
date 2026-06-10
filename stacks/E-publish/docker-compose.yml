@@ -12,11 +12,15 @@ services:
       dockerfile: Dockerfile.whisper
     image: pumacp/puma-info-whisperx:0.1.0
     container_name: puma_info_whisper
+    # Run as the host user so subtitle output is host-owned, not root.
+    # Models are baked at /opt/cache (readable + runtime-writable); HOME=/tmp.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../output:/work
       - ../../public:/work/public
       - ../../_private:/work/_private
-      - puma_info_whisper_models:/root/.cache
     deploy:
       resources:
         reservations:
@@ -50,11 +54,6 @@ services:
     profiles: ["publish"]
     networks:
       - default
-
-volumes:
-  puma_info_whisper_models:
-    labels:
-      puma_info: "true"
 
 networks:
   default:

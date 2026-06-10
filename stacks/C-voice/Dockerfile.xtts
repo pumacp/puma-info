@@ -27,12 +27,17 @@ RUN pip install --no-cache-dir --break-system-packages \
         coqui-tts==${COQUI_TTS_VERSION} \
         transformers==${TRANSFORMERS_VERSION}
 
-# Pre-download XTTS v2 model into the image layer
-# (subsequently mounted via volume for warm cache across container restarts)
+# Pre-download XTTS v2 model into the image layer at a non-root, world-readable
+# location. Coqui resolves its model dir from XDG_DATA_HOME (-> $XDG_DATA_HOME/tts),
+# so baking with XDG_DATA_HOME=/opt/share lets a non-root host user read the model
+# (the default ~/.local/share/tts lives under /root, mode 700, unreadable as
+# non-root). chmod a+rX keeps it readable for any mapped UID.
 ENV COQUI_TOS_AGREED=1
+ENV XDG_DATA_HOME=/opt/share
 RUN python3 -c "from TTS.api import TTS; \
     TTS('tts_models/multilingual/multi-dataset/xtts_v2', progress_bar=False); \
-    print('XTTS v2 model verified')"
+    print('XTTS v2 model verified')" \
+    && chmod -R a+rX /opt/share
 
 LABEL puma_info="true" gpu="true"
 

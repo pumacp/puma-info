@@ -17,11 +17,18 @@ ARG WHISPERX_VERSION=3.8.6
 RUN pip install --no-cache-dir --break-system-packages \
         whisperx==${WHISPERX_VERSION}
 
-# Pre-download the large-v3 model into the image. There is no GPU during the
-# build, so load on CPU (int8); runtime still uses cuda/float16.
+# Pre-download the large-v3 model into the image at a non-root cache location.
+# WhisperX/HF resolve caches from HF_HOME and XDG_CACHE_HOME; the default
+# ~/.cache lives under /root (mode 700, unreadable as non-root). Baking under
+# /opt/cache with a+rwX lets a mapped host UID read the baked model AND write the
+# alignment/VAD models it fetches at runtime. No GPU during build, so load on
+# CPU (int8); runtime still uses cuda/float16.
+ENV XDG_CACHE_HOME=/opt/cache
+ENV HF_HOME=/opt/cache/huggingface
 RUN python3 -c "import whisperx; \
     whisperx.load_model('large-v3', 'cpu', compute_type='int8'); \
-    print('WhisperX large-v3 model verified')"
+    print('WhisperX large-v3 model verified')" \
+    && chmod -R a+rwX /opt/cache
 
 LABEL puma_info="true" gpu="true"
 
