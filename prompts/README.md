@@ -19,6 +19,14 @@ This scaffolds the per-project subtree (`documents/`, `scripts/`, `specs/`,
 from `templates/project/`. Private projects also get an independent nested
 git (no remote).
 
+The scaffold also includes `sources/` — the single human-facing entry point
+for the project's source-of-truth, from which you organize the per-tool input
+dirs (`documents/`, `specs/`, `scripts/`, `compositions/`, `manim_scenes/`). It
+is an organizational convention only: no target reads from `sources/`
+automatically. See
+[`docs/design/research-project-workspace.md`](../docs/design/research-project-workspace.md)
+§4 and §8.
+
 ## 3. Produce outputs
 - Documents, slides, diagrams, conversions and Google import/export:
   [`docs/conversion-and-export.md`](../docs/conversion-and-export.md)
