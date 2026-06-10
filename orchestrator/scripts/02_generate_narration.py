@@ -30,6 +30,7 @@ Usage:
 import argparse
 import contextlib
 import datetime
+import hashlib
 import json
 import pathlib
 import re
@@ -158,10 +159,28 @@ def concat_wavs(parts: list, out: pathlib.Path) -> None:
                 o.writeframes(w.readframes(w.getnframes()))
 
 
-def log_row(video: str, engine: str, status: str) -> None:
+def sha256(path: pathlib.Path) -> str:
+    if not path.is_file():
+        return "MISSING"
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 16), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def repo_rel(path: pathlib.Path) -> str:
+    try:
+        return str(path.resolve().relative_to(REPO))
+    except ValueError:
+        return path.name
+
+
+def log_row(video: str, engine: str, status: str, spec_path: pathlib.Path) -> None:
     today = datetime.date.today().isoformat()
+    spec_ref = f"{repo_rel(spec_path)}@{sha256(spec_path)[:12]}"
     row = (f"| {today} | TTS | Narration synthesis ({engine}) for {video} "
-           f"| narration.wav + timing.json | {status} |\n")
+           f"(spec: {spec_ref}) | narration.wav + timing.json | {status} |\n")
     AI_USE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AI_USE_LOG.open("a", encoding="utf-8") as handle:
         handle.write(row)
@@ -243,7 +262,7 @@ def main() -> int:
     for part in all_parts:           # clean intermediate segments
         part.unlink(missing_ok=True)
 
-    log_row(video, args.voice_engine, "PASS")
+    log_row(video, args.voice_engine, "PASS", spec_path)
     print(f"\nWrote {out_wav} ({wav_duration(out_wav):.2f}s)")
     return 0
 

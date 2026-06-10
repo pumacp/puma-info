@@ -15,6 +15,7 @@ Usage:
 """
 import argparse
 import datetime
+import hashlib
 import os
 import pathlib
 import re
@@ -63,10 +64,28 @@ def normalise_acronyms(srt_path):
     srt_path.write_text(text, encoding="utf-8")
 
 
-def log_row(video, lang, status):
+def sha256(path):
+    if not path.is_file():
+        return "MISSING"
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 16), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def repo_rel(path):
+    try:
+        return str(path.resolve().relative_to(REPO))
+    except ValueError:
+        return path.name
+
+
+def log_row(video, lang, status, mp4_path):
     today = datetime.date.today().isoformat()
+    in_ref = f"{repo_rel(mp4_path)}@{sha256(mp4_path)[:12]}"
     row = (f"| {today} | transcription | WhisperX SRT ({lang}) for {video} "
-           f"| {video}.{lang}.srt | {status} |\n")
+           f"(in:{in_ref}) | {video}.{lang}.srt | {status} |\n")
     AI_USE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AI_USE_LOG.open("a", encoding="utf-8") as fh:
         fh.write(row)
@@ -114,14 +133,14 @@ def main():
         produced.replace(final)
     if not final.is_file():
         print(f"ERROR: SRT not produced: {final}", file=sys.stderr)
-        log_row(args.video, args.language, "FAIL")
+        log_row(args.video, args.language, "FAIL", mp4)
         return 1
     normalise_acronyms(final)
 
     if args.review:
         subprocess.run([os.environ.get("EDITOR", "nano"), str(final)])
 
-    log_row(args.video, args.language, "PASS")
+    log_row(args.video, args.language, "PASS", mp4)
     print(f"Wrote output/{final.name}")
     return 0
 
