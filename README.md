@@ -73,11 +73,22 @@
 
 <br>
 
-## What this repository does
+## Overview
 
-`puma-info` is the public information production pipeline of the
-**PUMA Project**. It turns specifications into reproducible,
-multi-format artifacts in multiple languages:
+`puma-info` is the public information-production pipeline of the **PUMA
+Project**. It turns specifications and source documents into reproducible,
+multi-format artifacts in multiple languages — videos, translated PDFs, slides,
+infographics, and documentation — for communicating and disseminating the
+project's work.
+
+Everything runs **local-first** inside isolated Docker containers: any operator
+with Docker (and, for the GPU-backed groups, the NVIDIA Container Toolkit) can
+clone, build, and regenerate the artifacts from pinned sources. The core
+platform — a reproducible benchmark of local language models on ICT
+project-management tasks — lives in [pumacp/puma](https://github.com/pumacp/puma);
+this repository produces the material that explains and disseminates it.
+
+## Features
 
 - **Videos** for the [PUMA YouTube channel](https://www.youtube.com/@PUMA_Project) — composed with HyperFrames, narrated with Piper TTS (English) or XTTS v2 (multilingual voice cloning), subtitled with WhisperX, published via the YouTube Data API.
 - **Translated PDFs** — academic and technical documents about PUMA, translated from Spanish to English (and other languages) with PDFMathTranslate + Ollama, preserving layout, tables and equations.
@@ -86,46 +97,9 @@ multi-format artifacts in multiple languages:
 - **Documentation** — Quarto for academic multi-format publishing (PDF, HTML, slides) from a single Markdown source.
 - **Format conversion & Google interop** — `video-convert` (mp4/webm/mov, with optional resolution scaling), `doc-ingest`/`pptx-ingest` to bring Google Docs/Slides exports back into the pipeline, and `slides-export` to produce editable Google Slides.
 
-## How it works
-
-All tools run inside isolated Docker containers under the
-`puma_info_network` bridge. The repository is self-contained: any
-operator with Docker and the NVIDIA Container Toolkit can clone,
-build, and regenerate every artifact from its pinned sources.
-Benchmarking results are bit-exact on the same hardware/runtime; generated
-media (audio, video, transcription) is functionally reproducible but not
-byte-identical (see [`docs/REPRODUCIBILITY_REPORT.md`](docs/REPRODUCIBILITY_REPORT.md)).
-
-**Spec-Driven Production** is applied throughout: JSON specs and
-Markdown documents are the source of truth; MP4s, PDFs, PPTXs and
-PNGs are regenerable derivatives.
-
-**Projects: public and private.** The repository root is the default
-public project. Named projects coexist as `public/<id>/` (tracked and
-publicly verifiable) and `_private/<id>/` (git-ignored, with its own
-independent nested git and an isolated AI-use log); each target routes
-its output into that project's own tree.
-
-**Workspace model.** A project organises material by role —
-`primary/` (mutable canonical source-of-truth), `context/` (immutable
-research/reference), `prompts/` (per-project generation prompts that turn
-inputs into outputs, for input→prompt→output traceability), `output/`
-(derived artifacts, by type: `docs/`, `video/`, `audio/`, `images/`,
-`slides/`, `subs/`), and optional `work/` (work-in-progress) — with a
-per-folder `SKILL.md` descriptor. Input enters via `sources/`/`prompts/`
-and leaves via `output/`, never the reverse; **`output/` mirrors `sources/`**
-(same type + sub-path), so each input visibly corresponds to what it
-generated. The root `SKILL.md` is the project's **path contract**: a
-machine-readable declaration of where sources, prompts, outputs and pipeline
-I/O live. `doc-ingest`/`pptx-ingest` and the video orchestrator already **read
-the contract** (resolving `outputs.docs` and `pipeline.compositions`); the
-remaining targets operate on explicit paths and built-in default dirs. A project
-**without** a contract behaves exactly as before (byte-identical defaults).
-Wiring the rest and enforcing the output↔sources mirror is the documented next
-step. See
-[`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md).
-
 ## Quick start
+
+Clone the repository and bring up the foundation:
 
 ```bash
 git clone git@github.com:pumacp/puma-info.git
@@ -134,7 +108,7 @@ make help
 make foundation-up
 ```
 
-Then install the tool groups you need:
+Install only the tool groups you need:
 
 ```bash
 make translation-up    # Group B: PDF translation
@@ -144,50 +118,53 @@ make publish-build     # Group E: subtitles + YouTube upload
 make docs-build        # Group F: documents (Quarto, Marp, Mermaid, Inkscape, LibreOffice)
 ```
 
-Create a named project (the repository root is the default public project):
+### Produce your first artifact
 
 ```bash
-make new-project NAME=<id> VISIBILITY=public    # tracked, publicly verifiable
-make new-project NAME=<id> VISIBILITY=private    # git-ignored, own nested git
-```
-
-See [`prompts/README.md`](prompts/README.md) (the launchpad) to create a
-project and produce a video, and
-[`docs/conversion-and-export.md`](docs/conversion-and-export.md) for the
-conversion, export and ingest targets.
-
-See the [Wiki](https://github.com/pumacp/puma-info/wiki) for full
-installation and usage guides per tool group.
-
-## Getting started
-
-Produce your first artifact in a named project, end to end:
-
-```bash
-# 1. Scaffold a project (gets the role layout primary/ context/ output/ work/ + SKILL.md)
-make new-project NAME=demo VISIBILITY=public
+# 1. Scaffold a project (creates the role layout primary/ context/ prompts/ output/ work/ + SKILL.md)
+make new-project NAME=demo VISIBILITY=public     # or VISIBILITY=private for a git-ignored project
 
 # 2. Put your canonical source-of-truth under primary/
 cp my-notes.docx public/demo/primary/docs/
 
-# 3. Bring up the tools and run a target at that file; OUTDIR= lands output by type
+# 3. Bring up the tools and run a target at that file (OUTDIR= places output by type)
 make docs-up
 make doc-ingest FILE=public/demo/primary/docs/my-notes.docx FORMAT=md OUTDIR=public/demo/output/docs
 
 # 4. Find the result inside the project's own tree
-ls public/demo/output/docs/   # derived markdown + extracted media/
+ls public/demo/output/docs/      # derived Markdown + extracted media/
 ```
 
 Any target given a path (or `PROJECT=`) under `public/<id>/` or `_private/<id>/`
 routes its output into that project's own tree; with no project selected, output
-goes to the repository root. Each project declares its layout in the root
-`SKILL.md` (path contract); until contract-resolution is wired, pass `OUTDIR=` to
-place output under a declared destination (otherwise targets use their built-in
-default dirs). Next steps: the project launchpad
-[`prompts/README.md`](prompts/README.md), the full conversion/export matrix
-[`docs/conversion-and-export.md`](docs/conversion-and-export.md), the workspace
-model [`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md),
-and video authoring [`docs/video-rules.md`](docs/video-rules.md).
+goes to the repository root. See [`prompts/README.md`](prompts/README.md) (the
+launchpad) to create a project and produce a video.
+
+## Workspace model
+
+The repository root is the default public project; named projects coexist as
+`public/<id>/` (tracked, publicly verifiable) and `_private/<id>/` (git-ignored,
+with its own nested git and AI-use log). Each project organises material by
+role, each with a `SKILL.md` descriptor:
+
+- **`primary/`** — canonical source-of-truth (mutable)
+- **`context/`** — research and reference (read-only)
+- **`prompts/`** — generation prompts, for input→prompt→output traceability
+- **`output/`** — derived artifacts, mirroring the source layout
+- **`work/`** — optional work-in-progress
+
+Input enters via `primary/`/`context/`/`prompts/` and leaves via `output/`,
+never the reverse. The project's root `SKILL.md` is a machine-readable **path
+contract** declaring where each role lives. Today `doc-ingest`/`pptx-ingest` and
+the video orchestrator read it; the other targets use explicit paths and
+built-in defaults, and a project **without** a contract behaves identically to a
+flat layout. Wiring the remaining targets and enforcing the output↔sources
+mirror is the documented next step.
+
+For the full mechanics — the path-contract keys, the per-target wiring, and the
+output-mirror rule — see the
+[Wiki → Architecture](https://github.com/pumacp/puma-info/wiki/Architecture) and
+[`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md).
 
 ## Tool groups
 
@@ -204,17 +181,35 @@ and video authoring [`docs/video-rules.md`](docs/video-rules.md).
 Each group is installed independently. See the group READMEs under
 `stacks/<group>/` and the dedicated Wiki pages.
 
+## Reproducibility
+
+Reproducibility is scoped by artifact class: **benchmarking results** are
+bit-exact on the same hardware/runtime; **generated media** (audio, video,
+transcription) is functionally reproducible but not byte-identical; and
+**energy/timing** vary. Docker images are pinned by digest and packages by
+version in `versions.lock`. See
+[`docs/REPRODUCIBILITY_REPORT.md`](docs/REPRODUCIBILITY_REPORT.md).
+
+**Spec-Driven Production** is applied throughout: specs and Markdown documents
+are the source of truth; MP4s, PDFs, PPTXs and PNGs are regenerable derivatives.
+
 ## Conversion & export
 
-Convert and bridge formats with already-installed tools: document
-conversion (Pandoc/Quarto), video format and resolution (`video-convert`),
-editable Slides export (`slides-export`), and Google Docs/Slides import
-(`doc-ingest`, `pptx-ingest`). See
+Convert and bridge formats with already-installed tools: document conversion
+(Pandoc/Quarto), video format and resolution (`video-convert`), editable Slides
+export (`slides-export`), and Google Docs/Slides import (`doc-ingest`,
+`pptx-ingest`). See
 [`docs/conversion-and-export.md`](docs/conversion-and-export.md).
 
-## Sister repositories in the PUMA Project
+## Documentation
 
-GitHub:
+- **[Wiki](https://github.com/pumacp/puma-info/wiki)** — installation and usage guides per tool group, architecture, the workspace model and path contract, reproducibility, and workflows.
+- **[`docs/`](docs/)** — design notes (incl. [`project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md)), the [conversion/export matrix](docs/conversion-and-export.md), [video rules](docs/video-rules.md), the [reproducibility report](docs/REPRODUCIBILITY_REPORT.md), and the [constitution](docs/constitution.md).
+- **[GitHub Pages](https://pumacp.github.io/puma-info/)** — the published documentation site.
+
+## Project resources
+
+Code repositories:
 
 - [pumacp/puma](https://github.com/pumacp/puma) — reproducible local-LLM benchmarking framework for ICT Project Management tasks
 - [pumacp/puma-community](https://github.com/pumacp/puma-community) — public submission hub for community-contributed results
