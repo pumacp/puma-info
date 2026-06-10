@@ -9,9 +9,19 @@ may be created or modified by this subproject. Existing PUMA
 Project resources are read-only.
 
 ## C-2 · Reproducibility
-Every artifact (MP4, PDF, PPTX, PNG) is reproducible bit-exact
-from the source specs (JSON, Markdown, QMD). Image digests are
-pinned in `versions.lock`. Random seeds are fixed.
+Reproducibility is scoped by artifact class:
+- **Benchmarking results** are reproducible bit-exact on the same
+  hardware-and-runtime profile — fixed seed and `temperature=0.0`, a
+  prompt-hash cache, versions pinned in `versions.lock`, and a predictions
+  hash that gates releases.
+- **Generated media and documents** (TTS audio, video, GPU transcription,
+  rendered PDF/PPTX/PNG) are functionally reproducible — regenerable from
+  pinned sources and specs — but not guaranteed byte-identical, because of
+  generative sampling, GPU non-determinism, and toolchain timestamps.
+- **Energy and timing** measurements are inherently run-to-run variable.
+
+Image digests are pinned in `versions.lock`; random seeds are fixed wherever
+a stage supports them.
 
 ## C-3 · Spec-Driven Production
 Specs (`specs/*.json`, `documents/*.qmd`, `prompts/*.md`,

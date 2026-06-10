@@ -28,19 +28,22 @@ This blocked host-side operations such as scaffolding a named public project.
   before this fix must be re-owned by the host user once; a non-root container
   cannot overwrite them.
 
-## D-002 · Generated audio is not bit-exact reproducible run-to-run
+## D-002 · Generated media is not bit-exact reproducible run-to-run — RESOLVED (re-scoped)
 
 Running the narration pipeline (`02_generate_narration`, Piper) twice on the same
 spec with identical, unmodified code produces byte-different `narration.wav` (and
-therefore `narration.timing.json`). The WhisperX transcription pipeline is
-expected to share this property (GPU float16 nondeterminism). This contradicts
-constitution **C-2** ("every artifact is reproducible bit-exact … random seeds
-are fixed").
+therefore `narration.timing.json`). The WhisperX transcription and XTTS pipelines
+share this property (generative sampling + GPU float16 nondeterminism).
 
-- **Status:** pre-existing. Surfaced while adding prompt→output traceability,
-  which is log-only and does not touch the production path — so it is out of
-  scope of that feature.
-- **Investigation deferred:** identify the source (synthesis vs. silence/concat
-  timing vs. true model nondeterminism; cuDNN/transcription determinism flags)
-  and decide whether bit-exactness is achievable for these stochastic stages or
-  whether C-2 should be qualified for them.
+- **Resolution (applied):** the original blanket "every artifact bit-exact"
+  claim was the inaccuracy, not the pipeline. Reproducibility was **re-scoped**
+  into three classes — benchmarking results (bit-exact on same hardware/runtime),
+  generated media (functionally reproducible, not byte-identical), energy/timing
+  (inherently variable) — in `docs/constitution.md` (C-2), `README.md` and
+  `docs/REPRODUCIBILITY_REPORT.md`. Run-to-run media variation is now documented
+  **expected** behaviour, not a contradiction.
+- **Investigation finding:** no determinism flags are set for the media stages,
+  and XTTS is a generative sampler — so true bit-exactness for generated media is
+  impractical to guarantee. A FIX path (torch deterministic flags,
+  `CUBLAS_WORKSPACE_CONFIG`, greedy/no-sampling, float32) remains available but is
+  **not pursued**; functional reproducibility is the honest ceiling.

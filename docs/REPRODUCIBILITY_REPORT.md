@@ -5,8 +5,12 @@ Generated 2026-06-05.
 ## Claim
 
 Given the same hardware tier and a clean Docker installation, every
-artifact produced by puma-info is regenerable bit-exact from its
-source spec by running the corresponding `make` target.
+artifact produced by puma-info is regenerable from its source spec by
+running the corresponding `make` target. **Bit-exactness is scoped by
+artifact class** (see "What is reproducible to what degree" below):
+benchmarking results are bit-exact on the same hardware/runtime; generated
+media (TTS audio, video, GPU transcription) is functionally reproducible —
+same source, equivalent artifact — but not byte-identical.
 
 The verification protocol below describes how to confirm this
 claim.
@@ -63,15 +67,30 @@ diverge, either:
   - Hardware non-determinism affected a GPU operation
   - A network-fetched LaTeX package or font shifted
 
-## What is NOT reproducible
+## What is reproducible, and to what degree
 
-The following aspects are inherently or practically not bit-exact:
+Reproducibility is scoped by artifact class:
 
-  - **Wall-clock times** vary by hardware.
+  - **Benchmarking results** — bit-exact on the same hardware-and-runtime
+    profile (fixed seed, `temperature=0.0`, prompt-hash cache, pinned
+    versions, predictions-hash gate).
+  - **Generated media** (TTS audio, video, GPU transcription) — functionally
+    reproducible (same source spec → equivalent artifact) but **not
+    byte-identical**. The generated **content itself** can differ run-to-run,
+    not merely the timing: see D-002 in `docs/known_debt.md`.
+  - **Energy and timing** (CodeCarbon, wall-clock) — inherently run-to-run
+    variable; never bit-exact by nature.
+
+The following are inherently or practically not bit-exact:
+
+  - **Wall-clock and energy measurements** vary by hardware and run.
+  - **Generative inference** — TTS sampling (XTTS), GPU transcription
+    (WhisperX, float16/cuDNN), and the narration assembly produce
+    byte-different audio/transcripts across runs even with identical code
+    and inputs (D-002). No determinism flags are set for these stages.
   - **Some GPU operations** are non-deterministic at the bit level
-    (CUDA reductions, certain attention implementations). Most
-    inference paths in puma-info are deterministic at temperature 0,
-    but exact equality is not guaranteed.
+    (CUDA reductions, certain attention implementations); exact equality is
+    not guaranteed even at temperature 0.
   - **Third-party API responses** (YouTube uploads, captions
     insertions) are outside our control. We log the response IDs
     in `output/<id>.upload.log` for audit.
@@ -81,8 +100,10 @@ The following aspects are inherently or practically not bit-exact:
     the local cache may diverge slightly. The image digest pins
     rebuild bit-exactly within the Docker layer cache.
 
-These divergences affect **production timing**, not artifact
-**content**.
+For benchmarking results these divergences are excluded by the fixed
+seed/temperature and the predictions-hash gate. For generated media they
+affect the artifact **content**, not just production timing — which is why
+generated media is held to *functional* reproducibility, not byte-identity.
 
 ## Content-hygiene scans
 

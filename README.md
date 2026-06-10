@@ -91,7 +91,10 @@ multi-format artifacts in multiple languages:
 All tools run inside isolated Docker containers under the
 `puma_info_network` bridge. The repository is self-contained: any
 operator with Docker and the NVIDIA Container Toolkit can clone,
-build, and reproduce all artifacts bit-exact.
+build, and regenerate every artifact from its pinned sources.
+Benchmarking results are bit-exact on the same hardware/runtime; generated
+media (audio, video, transcription) is functionally reproducible but not
+byte-identical (see [`docs/REPRODUCIBILITY_REPORT.md`](docs/REPRODUCIBILITY_REPORT.md)).
 
 **Spec-Driven Production** is applied throughout: JSON specs and
 Markdown documents are the source of truth; MP4s, PDFs, PPTXs and
