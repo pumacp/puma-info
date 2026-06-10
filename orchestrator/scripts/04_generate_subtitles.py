@@ -22,6 +22,9 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from pathcontract import resolve  # noqa: E402  (resolve project SKILL.md path-contract)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 OUTPUT_DIR = REPO / "output"
 AI_USE_LOG = REPO / "docs" / "ai-use-log.md"
@@ -45,7 +48,7 @@ def apply_project(project: str) -> None:
     if not re.fullmatch(r"(public|_private)/[^/]+", project):
         sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
     PROJECT = project
-    OUTPUT_DIR = REPO / project / "output"
+    OUTPUT_DIR = REPO / project / resolve(str(REPO / project), "outputs.video", "output")
     if project.startswith("_private/"):
         AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
 

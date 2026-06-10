@@ -52,10 +52,11 @@ def apply_project(project: str) -> None:
     if not re.fullmatch(r"(public|_private)/[^/]+", project):
         sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
     comp = resolve(str(REPO / project), "pipeline.compositions", "compositions")
+    outp = resolve(str(REPO / project), "outputs.video", "output")
     COMPOSITIONS_DIR = REPO / project / comp
-    OUTPUT_DIR = REPO / project / "output"
+    OUTPUT_DIR = REPO / project / outp
     CONTAINER_COMPOSITIONS = f"/work/{project}/{comp}"
-    CONTAINER_OUTPUT = f"/work/{project}/output"
+    CONTAINER_OUTPUT = f"/work/{project}/{outp}"
     if project.startswith("_private/"):
         AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
 
