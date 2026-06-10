@@ -27,3 +27,20 @@ This blocked host-side operations such as scaffolding a named public project.
 - **Out-of-band step:** pre-existing root-owned files or directories created
   before this fix must be re-owned by the host user once; a non-root container
   cannot overwrite them.
+
+## D-002 · Generated audio is not bit-exact reproducible run-to-run
+
+Running the narration pipeline (`02_generate_narration`, Piper) twice on the same
+spec with identical, unmodified code produces byte-different `narration.wav` (and
+therefore `narration.timing.json`). The WhisperX transcription pipeline is
+expected to share this property (GPU float16 nondeterminism). This contradicts
+constitution **C-2** ("every artifact is reproducible bit-exact … random seeds
+are fixed").
+
+- **Status:** pre-existing. Surfaced while adding prompt→output traceability,
+  which is log-only and does not touch the production path — so it is out of
+  scope of that feature.
+- **Investigation deferred:** identify the source (synthesis vs. silence/concat
+  timing vs. true model nondeterminism; cuDNN/transcription determinism flags)
+  and decide whether bit-exactness is achievable for these stochastic stages or
+  whether C-2 should be qualified for them.
