@@ -38,6 +38,9 @@ import subprocess
 import sys
 import wave
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from pathcontract import resolve  # noqa: E402  (resolve project SKILL.md path-contract)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPECS_DIR = REPO / "specs"
 COMPOSITIONS_DIR = REPO / "compositions"
@@ -63,8 +66,9 @@ def apply_project(project: str) -> None:
         return
     if not re.fullmatch(r"(public|_private)/[^/]+", project):
         sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
-    COMPOSITIONS_DIR = REPO / project / "compositions"
-    CONTAINER_COMPOSITIONS = f"/work/{project}/compositions"
+    comp = resolve(str(REPO / project), "pipeline.compositions", "compositions")
+    COMPOSITIONS_DIR = REPO / project / comp
+    CONTAINER_COMPOSITIONS = f"/work/{project}/{comp}"
     if project.startswith("_private/"):
         AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"
 

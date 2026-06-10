@@ -30,6 +30,9 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from pathcontract import resolve  # noqa: E402  (resolve project SKILL.md path-contract)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 COMPOSITIONS_DIR = REPO / "compositions"
 OUTPUT_DIR = REPO / "output"
@@ -48,9 +51,10 @@ def apply_project(project: str) -> None:
         return
     if not re.fullmatch(r"(public|_private)/[^/]+", project):
         sys.exit(f"ERROR: --project must match (public|_private)/<id>, got: {project!r}")
-    COMPOSITIONS_DIR = REPO / project / "compositions"
+    comp = resolve(str(REPO / project), "pipeline.compositions", "compositions")
+    COMPOSITIONS_DIR = REPO / project / comp
     OUTPUT_DIR = REPO / project / "output"
-    CONTAINER_COMPOSITIONS = f"/work/{project}/compositions"
+    CONTAINER_COMPOSITIONS = f"/work/{project}/{comp}"
     CONTAINER_OUTPUT = f"/work/{project}/output"
     if project.startswith("_private/"):
         AI_USE_LOG = REPO / project / "docs" / "ai-use-log.md"

@@ -321,7 +321,7 @@ video-convert: video-up ## Convert/scale a video with ffmpeg (FILE=<path under c
 doc-ingest: docs-up ## Ingest a .docx (e.g. exported from Google Docs) to Markdown/HTML (FILE=<path under documents/>, FORMAT=<md|html>)
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
 	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
-	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
+	if [ -n "$$OUTDIR" ]; then docdir="$$OUTDIR"; elif [ -n "$$proj" ]; then docdir="$$proj/$$(python3 orchestrator/scripts/pathcontract.py "$$proj" outputs.docs documents)"; else docdir="documents"; fi; mkdir -p "$$docdir"; \
 	docker exec puma_info_quarto sh -c 'cd "$$1" && quarto pandoc "$$2" -o "$$3" --extract-media=.' _ "/work/$$docdir" "/work/$(FILE)" "$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
 
 new-project: ## Scaffold a new project (NAME=<id> VISIBILITY=public|private)
@@ -351,7 +351,7 @@ slides-export: docs-up ## Export md/docx to editable .pptx via pandoc (FILE=<f.m
 pptx-ingest: docs-up ## Import .pptx to pdf|html via LibreOffice (FILE=<f.pptx>, FORMAT=<pdf|html>) [per-project; pptx->md: html+pandoc bridge, see docs]
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
 	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
-	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
+	if [ -n "$$OUTDIR" ]; then docdir="$$OUTDIR"; elif [ -n "$$proj" ]; then docdir="$$proj/$$(python3 orchestrator/scripts/pathcontract.py "$$proj" outputs.docs documents)"; else docdir="documents"; fi; mkdir -p "$$docdir"; \
 	docker exec puma_info_libreoffice soffice --headless -env:UserInstallation=file:///tmp/lo --convert-to "$${FORMAT:-html}" --outdir "/work/$$docdir" "/work/$(FILE)"; \
 	echo "Wrote into $$docdir/"
 
