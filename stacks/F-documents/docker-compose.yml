@@ -11,6 +11,10 @@ services:
       dockerfile: Dockerfile.quarto
     image: pumacp/puma-info-quarto:0.1.0
     container_name: puma_info_quarto
+    # Run as the host user so bind-mount outputs are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../documents:/work/documents
       - ../../output:/work/output
@@ -28,6 +32,10 @@ services:
       dockerfile: Dockerfile.marp-mermaid
     image: pumacp/puma-info-marp-mermaid:0.1.0
     container_name: puma_info_marp_mermaid
+    # Run as the host user so bind-mount outputs are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../documents:/work/documents
       - ../../output:/work/output
@@ -45,6 +53,10 @@ services:
       dockerfile: Dockerfile.inkscape
     image: pumacp/puma-info-inkscape:0.1.0
     container_name: puma_info_inkscape
+    # Run as the host user so bind-mount outputs are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../documents:/work/documents
       - ../../output:/work/output
@@ -62,6 +74,10 @@ services:
       dockerfile: Dockerfile.libreoffice
     image: pumacp/puma-info-libreoffice:0.1.0
     container_name: puma_info_libreoffice
+    # Run as the host user so bind-mount outputs are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../documents:/work/documents
       - ../../output:/work/output

@@ -37,6 +37,10 @@ services:
       dockerfile: Dockerfile.uploader
     image: pumacp/puma-info-uploader:0.1.0
     container_name: puma_info_uploader
+    # Run as the host user so bind-mount outputs are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../output:/work/output
       - ../../secrets:/work/secrets:ro

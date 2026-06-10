@@ -32,6 +32,10 @@ services:
       dockerfile: Dockerfile.manim
     image: pumacp/puma-info-manim:0.1.0
     container_name: puma_info_manim
+    # Run as the host user so bind-mount media/output are host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../manim_scenes:/manim
       - ../../output:/output
