@@ -17,5 +17,12 @@ auto-conversion and no auto-chaining** — you invoke each target explicitly on 
 file you want; `sources/` simply holds the source-of-truth those targets read
 from.
 
-See `docs/design/research-project-workspace.md` §4 (source-of-truth: current
-state vs target) and §8 (deferred & gated work) for the design of record.
+Organize sources by **type**: `documents/` (docx/md/pdf you maintain), `media/`
+(original images, audio, footage), `data/` (datasets, csv, json) and `notes/`
+(research notes, references). These type subdirectories are conventions — use the
+subset you need. `sources/` is the **source-of-truth** role; drafts/intermediate
+go in `working/` and finished artifacts in `output/`.
+
+See `docs/design/research-project-workspace.md` (source-of-truth model) and
+`docs/design/project-workspace-taxonomy.md` (the full role × type taxonomy:
+sources / working / output) for the design of record.
