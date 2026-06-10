@@ -83,3 +83,7 @@ public/*/output/
 public/*/compositions/*/render/
 public/*/compositions/*/audio/*.wav
 public/*/manim_scenes/media/
+
+# Retired stray scaffolding dirs (kept ignored to prevent re-introduction)
+script_es_defense/
+scripts_en/
