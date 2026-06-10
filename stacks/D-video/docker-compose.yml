@@ -12,6 +12,11 @@ services:
       dockerfile: Dockerfile.hyperframes
     image: pumacp/puma-info-hyperframes:0.1.0
     container_name: puma_info_hyperframes
+    # Run as the host user so bind-mount renders are host-owned, not root.
+    # HOME=/tmp redirects the npm/Chromium caches off the root-owned /root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     ports:
       - "3001:3000"
     volumes:

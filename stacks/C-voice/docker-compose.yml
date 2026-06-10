@@ -12,6 +12,10 @@ services:
       dockerfile: Dockerfile.piper
     image: pumacp/puma-info-piper:0.1.0
     container_name: puma_info_piper
+    # Run as the host user so bind-mount narration output is host-owned, not root.
+    user: "${PUMA_UID:-1000}:${PUMA_GID:-1000}"
+    environment:
+      - HOME=/tmp
     volumes:
       - ../../voice/piper_models:/voices/external
       - ../../compositions:/work/compositions
