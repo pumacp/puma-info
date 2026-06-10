@@ -12,23 +12,6 @@ AI-use log) are defined in [`AGENTS.md`](AGENTS.md) and
 - **Never commit directly to `main`.** `main` only advances through the merge
   procedure below.
 
-## Commit identity
-
-Every commit, push and any remote change is authored **solely by the project
-user**:
-
-```
-pumacp <266590835+pumacp@users.noreply.github.com>
-```
-
-- **No co-authors, no assistant/tool trailers, no personal usernames or emails.**
-- Make each commit with the identity pinned explicitly:
-
-```bash
-git -c user.name="pumacp" -c user.email="266590835+pumacp@users.noreply.github.com" \
-    commit -m "…"
-```
-
 ## Commit messages
 
 - Concise, **English**, imperative mood (e.g. "Add", "Fix", "Document").
@@ -39,9 +22,8 @@ git -c user.name="pumacp" -c user.email="266590835+pumacp@users.noreply.github.c
 
 ## Merge procedure (CLI-local, fast-forward only)
 
-Never merge through the GitHub web UI or API — that rewrites the committer and
-breaks the single-author guarantee. Merge from the command line, fast-forward
-only:
+Merge from the command line, fast-forward only — not through the GitHub web UI
+or API. This keeps history linear and the merge reproducible:
 
 ```bash
 git checkout main
