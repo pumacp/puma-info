@@ -16,7 +16,8 @@ axis (what kind) as subfolders. Top-level names are single words:
 ├── SKILL.md     # path contract (frontmatter) + description
 ├── primary/     # MUTABLE canonical source-of-truth        (type subdirs: docs/ media/ data/ code/)
 ├── context/     # IMMUTABLE research/reference, read-only   (docs/ media/ refs/ ; optional phase subdirs)
-├── output/      # DERIVED, by type: docs/ video/ audio/ images/ slides/ subs/
+├── prompts/     # per-project generation prompts (input→output instructions; traceability)
+├── output/      # DERIVED, mirrors sources/ — by type: docs/ video/ audio/ images/ slides/ subs/
 └── work/        # OPTIONAL work-in-progress
 ```
 
@@ -40,6 +41,35 @@ of known roles/types, and a project uses only what it needs.
 **Canonical home per derived type (unambiguous):** `output/docs`, `output/video`,
 `output/audio`, `output/images`, `output/slides`, `output/subs`.
 
+### Per-project `prompts/` (input→prompt→output traceability)
+A project root holds `prompts/` alongside `primary/`/`context/`/`output/`. It
+contains the **generation prompts** — the instructions that transform this
+project's inputs into outputs — one per output or task. This replaces the
+fragmented status quo (a global launchpad + per-video authoring) with a clear
+split:
+- **repo-root `prompts/`** = a **generic launchpad only** (how to create a project,
+  templates, pointers) — not project material.
+- **`<project>/prompts/`** = THIS project's actual generation prompts. Naming a
+  prompt after its target output records the trace (which prompt produced which
+  artifact), complementing the input-file→output provenance already in the AI-use
+  log.
+- The video sub-pipeline's per-video authoring (`scripts/<video>/{rules,script}.md`
+  → `specs/<video>.json`) is a **specialized prompt form** for video and keeps its
+  current location for backward-compat; conceptually it is a project prompt and may
+  consolidate under `prompts/<video>/` in a later step.
+
+### `output/` mirrors `sources/` (provenance correspondence)
+**Rule:** input enters via `sources/` (and `prompts/` for instructions) and leaves
+via `output/` — **never the reverse**; derived material never lands in `sources/`.
+`output/` **echoes the type + sub-path layout of `sources/`**: a source at
+`sources/<role>/<type>/<subpath>` produces its artifact at
+`output/<derived-type>/<subpath>` — same sub-path, type swapped to the derived
+type. So a source document at `primary/docs/chapter/intro.docx` yields, e.g.,
+`output/docs/chapter/intro.md`, `output/slides/chapter/intro.pptx`,
+`output/video/chapter/intro.mp4` — each visibly tied to its source. The mirror is
+declared in the contract (`outputs.mirror: sources`) and is the convention today;
+auto-enforcement is part of the later wiring.
+
 ## 2. The SKILL path-contract
 
 `SKILL.md` is dual-purpose: human descriptor **and** machine-readable path
@@ -53,7 +83,9 @@ contract: 1
 sources:
   primary: <path>     # REQUIRED  (default: primary)
   context: <path>     # optional  (default: context)
+prompts: <path>       # optional  (default: prompts) — per-project generation prompts
 outputs:
+  mirror: sources     # optional  — output/ echoes sources/ type+subpath
   docs: <path>        # optional  (default: output  — current hardcoded)
   video|audio|images|slides|subtitles: <path>   # optional (default: output)
 work: <path>          # optional  (default: work)

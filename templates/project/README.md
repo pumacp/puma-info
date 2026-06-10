@@ -10,11 +10,15 @@ contract** (see below).
   type: `docs/`, `media/`, `data/`, `code/` (use what you need).
 - `context/` — IMMUTABLE research/reference, read-only context (`context/SKILL.md`);
   optional phase subfolders.
+- `prompts/` — per-project generation prompts that turn inputs into outputs
+  (`prompts/SKILL.md`); records input→prompt→output traceability.
 - `output/` — DERIVED artifacts by type: `docs/`, `video/`, `audio/`, `images/`,
-  `slides/`, `subs/` (auto-created; git-ignored for public projects).
+  `slides/`, `subs/` (auto-created; git-ignored for public projects). **`output/`
+  mirrors `sources/`** (same type + sub-path) — input goes in via `sources/`,
+  output comes out via `output/`, never the reverse.
 - `work/` — OPTIONAL work-in-progress staging (`work/SKILL.md`).
 - `SKILL.md` (root) — the project's **path contract** (machine-readable frontmatter
-  declaring where sources/outputs/pipeline I/O live) + description.
+  declaring where sources/prompts/outputs/pipeline I/O live) + description.
 
 Pipeline machine I/O (used by the video/orchestrator targets via their built-in
 defaults until contract-resolution is wired): `compositions/<video-id>/`,
