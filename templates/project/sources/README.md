@@ -17,12 +17,17 @@ auto-conversion and no auto-chaining** — you invoke each target explicitly on 
 file you want; `sources/` simply holds the source-of-truth those targets read
 from.
 
-Organize sources by **type**: `documents/` (docx/md/pdf you maintain), `media/`
-(original images, audio, footage), `data/` (datasets, csv, json) and `notes/`
-(research notes, references). These type subdirectories are conventions — use the
-subset you need. `sources/` is the **source-of-truth** role; drafts/intermediate
-go in `working/` and finished artifacts in `output/`.
+Source-of-truth has two roles (see each folder's `SKILL.md`):
 
-See `docs/design/research-project-workspace.md` (source-of-truth model) and
-`docs/design/project-workspace-taxonomy.md` (the full role × type taxonomy:
-sources / working / output) for the design of record.
+- **`sources/primary/`** — MUTABLE canonical documents you author and correct;
+  the basis for derived material.
+- **`sources/secondary/`** — IMMUTABLE accumulated research/context that feeds and
+  corrects the primary and serves as context for generation; never modified
+  (optional phase subfolders live here).
+
+Drafts/intermediate go in `working/`; produced material goes in `output/` (the
+derived role). Each role folder carries a `SKILL.md` describing what it is and how
+agents should use it.
+
+See `docs/design/project-workspace-taxonomy.md` (primary / secondary / derived
+model + SKILL descriptors) for the design of record.

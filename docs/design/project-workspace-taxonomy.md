@@ -1,180 +1,147 @@
-# Design: project workspace taxonomy (role × type)
+# Design: project workspace — primary / secondary / derived + SKILL descriptors
 
-> Design document. It proposes how a project workspace is organised and adds an
-> **additive** skeleton to `templates/project/`. It does not move or rename
-> anything the targets already read, and it does not touch the migrated thesis.
-> This is the full form of gap #4b, deferred by
-> [`research-project-workspace.md`](research-project-workspace.md) §4/§8.
+> Design document. It defines how a project workspace is organised and adds
+> **additive, generic** templates. It supersedes the earlier role×type sketch.
+> It changes no code, no target behaviour, and does not reorganise any existing
+> project's files. Applies identically to `public/<id>/` and `_private/<id>/`.
 
 ## 1. Purpose & scope
 
-The current per-project layout is flat and tool-oriented: `sources/` plus the
-five pipeline dirs (`documents/`, `specs/`, `scripts/`, `manim_scenes/`,
-`compositions/`) and `output/`. It does not make the one distinction authors most
-need: **what is canonical source, what is a draft/intermediate, and what is the
-finished output**. This document defines a richer, role-first taxonomy that:
+A project's material falls into a few clear roles. The earlier flat, tool-oriented
+layout did not separate **what is canonical and editable**, **what is fixed
+background knowledge**, and **what is produced**. This document fixes the final
+model around three source/output roles plus an optional working area, and adds a
+per-folder **SKILL descriptor** so any agent/tool can read a folder and know what
+it is and how to use it.
 
-- cleanly separates **source-of-truth** from **working/drafts** from **produced
-  output** (the main pain point);
-- admits many **input types** (documents, media, data, notes) and organises
-  outputs by type;
-- makes it unambiguous **where the correct current output is** at any stage.
+## 2. The model (generic; any project, public or private)
 
-It applies identically to `public/<id>/` and `_private/<id>/`. This increment is
-**design + additive template only**; reorganising the migrated thesis and any
-target re-wiring are separate, later, gated increments.
+- **`sources/primary/` — MUTABLE source-of-truth.** The project's most important
+  documents: authored, edited and corrected over time. This is the main basis for
+  derived material. It changes; it is the canonical "current truth".
+- **`sources/secondary/` — IMMUTABLE source-of-truth.** The accumulated knowledge
+  from the project's earlier research/work — kept as a fixed record, never
+  modified. It feeds and corrects the primary and serves as **context** for
+  generation. Phase sub-organisation is natural here: optional phase subfolders
+  (e.g. `01-…/`, `02-…/`) belong under `secondary/`.
+- **`output/` — DERIVED material.** Everything produced from the primary (with
+  secondary optionally as context): infographics, images, translations,
+  animations, video, audio, slides, transcripts. Subdivide by type as needed
+  (`output/video/`, `output/images/`, `output/docs/`, …). This is the produced
+  role — "where the current correct output is".
+- **`working/` — OPTIONAL work-in-progress.** Kept, but optional. For genuine
+  scratch/drafts that are *not yet* primary, *not* secondary, and *not* a finished
+  derived artifact. Lightweight; nothing here is authoritative. Justification for
+  keeping it: a draft being promoted toward `primary/` needs a home that is
+  clearly "not canonical yet"; without `working/`, drafts pollute `sources/`.
 
-## 2. The taxonomy decision
+Type is a secondary axis expressed as subfolders *within* a role. Importance
+("primary vs secondary") is a **role**, not a separate tier grid.
 
-### Axes considered
-- **ROLE** — source-of-truth vs working/draft vs produced output.
-- **TYPE** — documents, media (audio/video/images), data, notes, slides, diagrams.
-- **PHASE** — investigation → planning → design → execution → analysis → defence.
-- **TIER** — primary / secondary / tertiary importance of documents.
-
-### Evaluation of phase × type (the preferred hypothesis)
-A phase axis describes the lifecycle of a **research project**, not of a
-**media-production project**. A puma-info project's job is "turn source material
-into videos/docs/slides/audio/subtitles/images". Most such projects have no
-"investigation" or "defence" phase; forcing a six-phase grid on every project
-creates **empty directories and friction**, and the same artifact often spans
-phases. Phase × type is therefore **too heavy as a mandatory structure** here.
-
-The author's actual difficulty is **role confusion** (which file is canonical vs
-a draft vs the final output), which is **orthogonal to phase** and **universal**
-across every project. TYPE is a light, natural secondary axis.
-
-### Decision (recommended)
-**ROLE × TYPE**, with **PHASE optional** and **TIER rejected as a mandatory axis**:
-
-- **ROLE is the primary axis** — three top-level roles: `sources/`, `working/`,
-  `output/`. This directly solves the source/draft/output separation.
-- **TYPE is the secondary axis** — type subdirectories *within* a role
-  (e.g. `sources/documents/`, `output/video/`).
-- **PHASE is optional and free-form** — a project that genuinely has phases may
-  add phase subdirectories *inside* a role (e.g. `working/01-research/`,
-  `sources/phases/`); it is never required and never a top-level axis.
-- **TIER is not a structural axis** — importance is already expressed by ROLE
-  (canonical `sources/` vs `working/` drafts). A project that needs to rank
-  documents may do so with optional naming or an optional
-  `sources/documents/primary|secondary/` grouping, but the template does not
-  mandate it (a rigid tier grid adds confusion without payoff).
-
-## 3. The concrete workspace tree
+## 3. Provenance flow (explicit)
 
 ```
-public/<id>/            (identical for _private/<id>/)
-├── sources/            ROLE: source-of-truth — canonical, authored, owned inputs
-│   ├── documents/      TYPE: source docs (docx, md, pdf you maintain)
-│   ├── media/          TYPE: original images, audio, footage
-│   ├── data/           TYPE: datasets, csv, json source data
-│   └── notes/          TYPE: research notes, references
-├── working/            ROLE: drafts / intermediate / scratch (NOT canonical, NOT final)
-│   └── …               free-form; optional phase subdirs (e.g. 01-research/) go here
-├── output/             ROLE: produced artifacts — the current correct output
-│   └── …               flat today; optional TYPE subdirs (video/ docs/ slides/
-│                       audio/ subtitles/ images/) via OUTDIR — see §6 (deferred)
-│
-│  pipeline I/O layer (existing, kept for backward-compat; see §6):
-├── specs/              machine specs the pipeline consumes (JSON)
-├── scripts/            per-video authoring (<video>/{rules,script}.md)
-├── manim_scenes/       Manim scene sources (+ media/ render dir)
-├── compositions/       HyperFrames composition dirs
-└── docs/               this project's AI-use log (private) + provenance
+secondary  ──(distilled / corrected by the author, OUTSIDE puma-info)──▶  primary
+primary    ──(puma-info generates: convert / render / synthesize)──────▶  derived (output/)
+secondary  ──(available as context during generation)──────────────────▶  derived
 ```
 
-The three **roles** are the contract; the **type** subdirectories under each are
-conventions an author can use as needed (empty ones can be deleted per project).
+- **puma-info operates on `sources/` to produce `output/`.** It does **not**
+  automate `secondary → primary`; that distillation/correction is the author's
+  job, done with other tools. puma-info enters once `primary/` exists, and may
+  consult `secondary/` as context.
+- `secondary/` is immutable: generation reads it, never writes it.
 
-## 4. Roles defined + input↔output clarity
+## 4. How generation and traceability actually work (verified)
 
-- **`sources/` = source-of-truth.** The canonical inputs you author and own. If
-  it is the authoritative version of something, it lives here. For a private
-  project this is the precious material (handle with backups).
-- **`working/` = drafts / intermediate.** Anything in progress, scratch, or
-  machine-intermediate that is *neither* the canonical source *nor* the finished
-  artifact. Nothing here is authoritative; it can be regenerated or discarded.
-- **`output/` = produced artifacts.** The **current correct output** of the
-  pipeline. "Where is the finished video / document / slides?" → always
-  `<id>/output/`. Drafts never live here.
+The conceptual picture — "a prompt in a project folder drives generation, and
+prompts give input→output traceability" — maps onto the real system as follows
+(no mechanism is claimed that does not exist):
 
-This removes the ambiguity: **canonical → `sources/`, in-progress → `working/`,
-finished → `output/`.** A reviewer opening a project reads `output/` for results,
-`sources/` for what they were built from, and ignores `working/`.
+- **Generation is human/CLI-invoked, not an autonomous prompt-watcher.** The
+  operator runs a `make` target (or an `orchestrator/` script) pointing at an
+  input under the project (`FILE=…/sources/…`, `PROJECT=public/<id>`). There is no
+  daemon that reads a prompt file and auto-produces derivatives.
+- **The "prompts" are two layers:** the global launchpad `prompts/` (human
+  guidance) and per-project authoring under `<project>/scripts/<video>/{rules,
+  script}.md`, transcribed into the machine spec `specs/<id>.json` that the
+  orchestrator consumes.
+- **Traceability is real, at the input-file level.** The orchestrator records, in
+  the AI-use log, the input path **and its sha256** mapped to the produced output
+  (`02` logs `spec:<path>@<hash>`, `03` logs `in:<hash> out:<hash>`, `04` logs
+  `in:<mp4>@<hash>`). So a produced artifact can be traced to the exact input file
+  that produced it. What is **not** captured is the conversational prompt an agent
+  used to author the spec — provenance is at the spec/source-file granularity.
 
-## 5. Type axis
+## 5. SKILL descriptor system (per folder)
 
-Types are: **documents**, **media** (audio / video / images), **data**, **notes**
-(under `sources/`); and **video / docs / slides / audio / subtitles / images**
-(under `output/`). Types are a navigation aid, not a hard schema — a project uses
-the subset it needs.
+Each role folder carries a **`SKILL.md`** so any tool/agent can read it first and
+know what it is working with. Fields (tool-agnostic markdown):
+
+- **Role** — primary / secondary / derived / working.
+- **Mutability** — MUTABLE or IMMUTABLE.
+- **Contains** — what kind of material lives here.
+- **Purpose / how to use** — how prompts/agents should treat it (e.g. "edit
+  freely", "read-only context", "regenerable output").
+- **Provenance** — where it comes from and what it feeds.
+
+### Mechanism in the agent flow (verified)
+`AGENTS.md` at the repository root is the **auto-read** entry point for agents.
+There is **no** automatic per-folder `SKILL.md` discovery today (the only existing
+"skills" are the HyperFrames capability bundle under `.agents/`, a different
+concept — ADR-003). A per-folder `SKILL.md` is therefore a **read-on-entry
+convention**: an agent reads a folder's `SKILL.md` before operating on that
+folder, and `AGENTS.md` points agents to the convention. The format is plain
+markdown so any tool can consume it; a future agent could also glob for `SKILL.md`.
+
+Generic example `SKILL.md` templates ship in `templates/project/` (and a derived
+example at the template root, since `output/` is created at runtime and
+git-ignored) so any user can copy and adapt them.
 
 ## 6. Mapping to existing targets (backward-compatible)
 
-The per-project OUTDIR derivation is **depth-agnostic**: for any input path it
-computes the project as the first two path segments
-(`case "$FILE" in public/*/*|_private/*/*) proj=$(… cut -d/ -f1-2)`), so a path at
-**any depth** routes correctly — verified:
-
-| Input path | Routes output to |
-|---|---|
-| `public/<id>/sources/documents/x.docx` | `public/<id>/output` (or `…/documents` for ingest) |
-| `_private/<id>/sources/media/a.png` | `_private/<id>/output` |
-| `public/<id>/working/drafts/y.md` | `public/<id>/output` |
-
-Targets take an **explicit `FILE=` path**; they do not enumerate a fixed input
-directory. Therefore:
-
-- **Pointing any target at `sources/<type>/<file>` already works** and routes
-  output into the project tree — **no code change needed**, fully backward
-  compatible. Existing flat dirs and all targets remain **byte-identical**.
-- **`output/` stays flat by default** (targets write to `<id>/output/`). Output
-  *type* subdirectories (`output/video/`, `output/slides/`, …) are available
-  **per call** today via `OUTDIR=<id>/output/video` (the documented override).
-  Making type-routed output the **default** would change where targets write →
-  that is a **separate, medium-risk wiring increment**, explicitly **deferred**
-  (do not do it here).
-- The existing **pipeline I/O dirs** (`specs/`, `scripts/`, `manim_scenes/`,
-  `compositions/`, and the produced `documents/`) are kept exactly where the
-  targets expect them. In role terms they are *working/intermediate* (`specs/`,
-  `scripts/`, `manim_scenes/`, `compositions/`) and *produced* (`documents/`);
-  **physically moving** them under `working/`/`output/` would change target paths
-  → also a **deferred** increment. This design positions the new role dirs
-  **around** them additively.
+Unchanged from the verified behaviour: the per-project OUTDIR derivation is
+depth-agnostic (`proj` = first two path segments), and targets take an explicit
+`FILE=` path. So pointing any target at `sources/primary/<file>` or
+`sources/secondary/<file>` already routes output into `<id>/output/` with **no
+code change**. Default `output/` stays flat; type subfolders are available via
+`OUTDIR=` and a default-routed output remains a separate, deferred wiring step.
+Existing pipeline dirs (`specs/`, `scripts/`, `manim_scenes/`, `compositions/`)
+and all targets remain **byte-identical**.
 
 ## 7. public / _private symmetry
 
-The same tree applies to both. `.gitignore:2` ignores `_private/` wholesale, so
-every subdirectory of a private project (including the new role/type dirs) is
-git-ignored automatically. The Group C/D/E/F compose files mount `../../public`
-and `../../_private`, so all subdirectories — at any depth — are reachable inside
-the containers. No symmetry or reachability concern is introduced.
+The same roles and SKILL descriptors apply to both. `.gitignore:2` ignores
+`_private/` wholesale, so a private project's `SKILL.md` files and all role
+subfolders stay git-ignored automatically. Compose mounts (`../../public`,
+`../../_private`) reach every subfolder at any depth. No symmetry concern.
 
-## 8. Migration sketch (design only — NOT executed here)
+## 8. Migration sketch for an existing project (design only — not executed here)
 
-When the migrated thesis is later reorganised (separate gated increment, with
-backups, original untouched until validated):
+When a migrated project is later reorganised (separate gated step, with backups):
 
-- the 15 canonical `.docx` → `sources/documents/` (source-of-truth);
-- their converted `.md` + extracted `media/` → `output/docs/` (produced);
-- any scratch/intermediate → `working/`;
-- the per-project AI-use log + manifests → `docs/`.
-
-This is a forward plan; this increment does not move the thesis.
+- canonical, editable documents → `sources/primary/`;
+- fixed historical research/context → `sources/secondary/` (with optional phase
+  subfolders);
+- produced conversions/media → `output/` (by type: `output/docs/`,
+  `output/images/`, …);
+- a `SKILL.md` is added to each role folder.
 
 ## 9. What this increment changes
 
-- **Additive template only:** `templates/project/` gains `sources/{documents,
-  media,data,notes}/` and `working/` (with `.gitkeep` + short READMEs explaining
-  the roles). Existing template dirs are untouched.
+- **Design:** this document (final model).
+- **Additive/generic template:** `templates/project/` gains generic `SKILL.md`
+  descriptors for `sources/primary/`, `sources/secondary/`, `working/`, and a
+  derived-output example; the interim type-subfolders under `sources/` are
+  replaced by the `primary/`/`secondary/` roles.
 - **Deferred (separate increments):** default type-routed `output/`; physically
-  moving `specs/`/`scripts/`/etc. under role dirs; reorganising the thesis.
+  moving pipeline dirs under roles; reorganising any existing project.
 
 ## 10. Invariants honoured
 
 - **No-break / byte-identical:** existing dirs and every target behave exactly as
-  before; the new dirs are organisational and read by no target automatically.
-- **Reproducibility & public/private model** unchanged; `_private/` stays
-  git-ignored; compose reachability preserved.
-- **Design-then-implement with gates:** the heavier moves (wiring, thesis
-  reorg) are explicitly deferred to approved increments.
+  before; new dirs/descriptors are read by no target automatically.
+- **Reproducibility & public/private model** unchanged; `_private/` git-ignored;
+  compose reachability preserved.
+- **Design-then-implement with gates:** heavier moves are deferred to approved
+  increments.
