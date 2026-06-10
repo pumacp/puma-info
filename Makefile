@@ -322,7 +322,7 @@ doc-ingest: docs-up ## Ingest a .docx (e.g. exported from Google Docs) to Markdo
 	@if [ -z "$(FILE)" ]; then echo "ERROR: FILE=<path> required"; exit 1; fi
 	@case "$(FILE)" in public/*/*|_private/*/*) proj=$$(echo "$(FILE)" | cut -d/ -f1-2);; *) proj="";; esac; \
 	docdir="$${OUTDIR:-$${proj:+$$proj/}documents}"; mkdir -p "$$docdir"; \
-	docker exec puma_info_quarto quarto pandoc "/work/$(FILE)" -o "/work/$$docdir/$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
+	docker exec puma_info_quarto sh -c 'cd "$$1" && quarto pandoc "$$2" -o "$$3" --extract-media=.' _ "/work/$$docdir" "/work/$(FILE)" "$$(basename "$(FILE)" .docx).$${FORMAT:-md}"
 
 new-project: ## Scaffold a new project (NAME=<id> VISIBILITY=public|private)
 	@if [ -z "$(NAME)" ]; then echo "ERROR: NAME=<id> required"; exit 1; fi

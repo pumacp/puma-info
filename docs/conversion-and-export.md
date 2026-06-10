@@ -48,6 +48,10 @@ does not read PDF input).
 | `make doc-ingest FILE=documents/<f>.docx FORMAT=<md\|html>` | Pandoc | `.docx` (exported from Google Docs) → `documents/<f>.md` |
 | `make pptx-ingest FILE=<f>.pptx FORMAT=<pdf\|html>` | LibreOffice | `.pptx` (exported from Google Slides) → `documents/<f>.<pdf\|html>` |
 
+`doc-ingest` extracts any embedded images into a `media/` subdirectory next to
+the output (so `<proj>/documents/media/…`), and the figure links in the
+generated Markdown resolve. Documents without embedded media convert unchanged.
+
 > **Google Slides import (`.pptx` → local) is supported** via
 > `make pptx-ingest` (LibreOffice → pdf/html). For `.pptx` → Markdown, use the
 > two-step bridge: `make pptx-ingest FILE=x.pptx FORMAT=html`, then
