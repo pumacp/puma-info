@@ -81,10 +81,12 @@ own directory instead of the repository-root `output/`:
   no extra flag needed. You still invoke each target explicitly; nothing is
   auto-converted or auto-chained.
 
-> **Not yet per-project:** the Python render pipeline (`make video-render`,
-> `02_generate_narration`, `04_generate_subtitles`) still writes to the
-> root `output/` and `compositions/`. It remains **root-only until
-> sub-step 2b**, which makes the orchestrator project-aware.
+> **Per-project render pipeline:** the orchestrator (`make video-render`,
+> `make subs-<id>`, `02_generate_narration`, `04_generate_subtitles`) routes its
+> output into the selected project's tree when given `PROJECT=public/<id>` (or
+> `_private/<id>`) / `--project`: `apply_project()` repoints `output/` and
+> `compositions/` under that project. Without it, output goes to the
+> repository-root `output/`/`compositions/`, exactly as before.
 > `05_translate` keeps its own `translation/` workspace.
 
 ## Notes

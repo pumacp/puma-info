@@ -60,7 +60,6 @@
   <a href="https://www.youtube.com/@PUMA_Project">YouTube</a> ·
   <a href="https://github.com/pumacp/puma-info/wiki">PUMA Info Wiki</a> ·
   <a href="https://github.com/pumacp/puma-community/wiki">PUMA Community Wiki</a> ·
-  <a href="https://notebooklm.google.com/notebook/76d59cbe-ce15-4d13-a40f-65d6891dcebc">NotebookLM</a> ·
   <a href="https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPlSF7ztS2Bv0l7vZS?usp=sharing">Drive (info)</a>  
 </p>
 
@@ -137,6 +136,33 @@ conversion, export and ingest targets.
 
 See the [Wiki](https://github.com/pumacp/puma-info/wiki) for full
 installation and usage guides per tool group.
+
+## Getting started
+
+Produce your first artifact in a named project, end to end:
+
+```bash
+# 1. Scaffold a project (public = tracked, private = git-ignored)
+make new-project NAME=demo VISIBILITY=public
+
+# 2. Put your source-of-truth under the project's sources/ entry point
+cp my-notes.docx public/demo/sources/
+
+# 3. Bring up the tools you need and run a target pointing at that file
+make docs-up
+make doc-ingest FILE=public/demo/sources/my-notes.docx FORMAT=md
+
+# 4. Find the result inside the project's own tree
+ls public/demo/documents/   # ingested Markdown + extracted media/
+ls public/demo/output/      # conversions and renders
+```
+
+Any target given a path (or `PROJECT=`) under `public/<id>/` or `_private/<id>/`
+routes its output into that project's own tree; with no project selected, output
+goes to the repository root. Next steps: the project launchpad
+[`prompts/README.md`](prompts/README.md), the full conversion/export matrix
+[`docs/conversion-and-export.md`](docs/conversion-and-export.md), and video
+authoring [`docs/video-rules.md`](docs/video-rules.md).
 
 ## Tool groups
 
