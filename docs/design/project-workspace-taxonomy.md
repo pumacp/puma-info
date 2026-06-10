@@ -100,17 +100,32 @@ pipeline:             # video/orchestrator machine I/O
   behave **byte-identically**.
 - All paths are **relative to the project root** (`public/<id>/` or `_private/<id>/`).
 
-## 3. Pipeline-resolution interface (SPEC — not wired here)
+## 3. Pipeline-resolution interface (WIRED for the targets below)
 
-A target resolving a path would:
+The resolver is implemented in `orchestrator/scripts/pathcontract.py`:
 
 ```
 resolve(project, key, builtin_default):
-    contract = read_frontmatter(project + "/SKILL.md")     # if file & 'contract' present
+    contract = read_frontmatter(project + "/SKILL.md")     # if file & frontmatter present
     if contract and key in contract:
-        return project + "/" + contract[key]
-    return project + "/" + builtin_default                 # fallback (today's behaviour)
+        return contract[key]                               # path relative to project root
+    return builtin_default                                 # fallback (today's behaviour)
 ```
+
+It has no third-party dependency (frontmatter parsed by hand) and never raises:
+missing file / missing frontmatter / missing key / malformed → returns the
+default.
+
+**Wired targets (now IS):**
+- `doc-ingest`, `pptx-ingest` → `outputs.docs` (default `documents`).
+- the video orchestrator `03_render_video` & `02_generate_narration` →
+  `pipeline.compositions` (default `compositions`).
+
+**Still on built-in defaults (DESIGNED, not yet wired):** the generic conversions
+(`quarto/marp/mermaid/inkscape/pandoc-render`, `video-convert`, `slides-export`),
+`manim-render`, and the orchestrator `output/` location (`03`/`04`). Wiring these
+(a per-FORMAT→type map for conversions; `outputs.video`/etc.) is a follow-up; they
+remain byte-identical today.
 
 - **No contract / no SKILL.md →** every key falls back to the built-in default →
   identical to today. This is the backward-compatibility guarantee.
@@ -124,24 +139,27 @@ resolve(project, key, builtin_default):
 | `pipeline.compositions` | `<proj>/compositions` — `03_render_video.py:51`, `02_generate_narration.py:66` |
 | `outputs.video` / subtitles | `<proj>/output` (flat) — `03:52`, `04:48` |
 
-Implementing this resolution (Makefile + orchestrator) is a **separate gated
-increment**; it is intentionally **not built** here.
+The resolution is **wired** for the targets listed above (doc-ingest/pptx-ingest
+and the orchestrator compositions); the remaining targets are a follow-up.
 
 ## 4. What IS vs what is DESIGNED (Marco Veritas)
 
 - **IS, today:** targets take explicit paths (`FILE=`, `SCENE=`, `--composition`,
-  `--project`) and read/write the built-in default dirs. You can already organise
-  a project by these roles and point targets at role paths; pass `OUTDIR=` to land
-  output under a declared destination. Conversion/ingest read material at any depth
-  (the per-project `proj` derivation is depth-agnostic).
-- **DESIGNED, later:** targets read the root `SKILL.md` contract and resolve
-  `outputs.*`/`pipeline.*` automatically, falling back to defaults. Until wired,
-  the contract is the **declared convention**, not auto-enforced.
-
-The `pipeline.*` keys exist because the video sub-pipeline currently assumes
+  `--project`) and read/write the built-in default dirs; `OUTDIR=` still overrides.
+  **Contract-aware (wired):** `doc-ingest`/`pptx-ingest` resolve `outputs.docs`,
+  and the video orchestrator resolves `pipeline.compositions`, from a project's
+  root `SKILL.md` — proven by real execution: a contract-less project lands in the
+  default dirs (byte-identical), a contract-bearing project lands at the declared
+  paths. Conversion/ingest also read material at any depth (depth-agnostic `proj`).
+- **DESIGNED (not yet wired):** contract resolution for the generic conversions,
+  `manim-render`, and the orchestrator `output/` location; and auto-enforcement of
+  the `outputs.mirror`. These stay on built-in defaults (byte-identical) until a
+  follow-up increment.
+The `pipeline.*` keys exist because the video sub-pipeline assumed
 `<proj>/compositions/`, `<proj>/specs/`, `<proj>/manim_scenes/`; the template keeps
-those dirs so video/orchestrator work by default, and the contract declares where
-they will live once wiring lets them move under the roles.
+those dirs so the pipeline works by default. `pipeline.compositions` is now
+contract-aware (a project can relocate its compositions via the contract); the
+others remain on defaults pending the follow-up.
 
 ## 5. public / _private symmetry
 

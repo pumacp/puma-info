@@ -117,10 +117,12 @@ and leaves via `output/`, never the reverse; **`output/` mirrors `sources/`**
 (same type + sub-path), so each input visibly corresponds to what it
 generated. The root `SKILL.md` is the project's **path contract**: a
 machine-readable declaration of where sources, prompts, outputs and pipeline
-I/O live. Today targets operate on explicit paths and built-in default dirs;
-reading the contract to resolve paths automatically (and enforce the mirror)
-is the documented next step — it is not yet wired, and projects without a
-contract behave exactly as before. See
+I/O live. `doc-ingest`/`pptx-ingest` and the video orchestrator already **read
+the contract** (resolving `outputs.docs` and `pipeline.compositions`); the
+remaining targets operate on explicit paths and built-in default dirs. A project
+**without** a contract behaves exactly as before (byte-identical defaults).
+Wiring the rest and enforcing the output↔sources mirror is the documented next
+step. See
 [`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md).
 
 ## Quick start
