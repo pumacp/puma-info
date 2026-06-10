@@ -108,14 +108,19 @@ its output into that project's own tree.
 
 **Workspace model.** A project organises material by role —
 `primary/` (mutable canonical source-of-truth), `context/` (immutable
-research/reference), `output/` (derived artifacts, by type: `docs/`,
-`video/`, `audio/`, `images/`, `slides/`, `subs/`), and optional `work/`
-(work-in-progress) — with a per-folder `SKILL.md` descriptor. The root
-`SKILL.md` is the project's **path contract**: a machine-readable
-declaration of where sources, outputs and pipeline I/O live. Today targets
-operate on explicit paths and built-in default dirs; reading the contract
-to resolve paths automatically is the documented next step (it is not yet
-wired — projects without a contract behave exactly as before). See
+research/reference), `prompts/` (per-project generation prompts that turn
+inputs into outputs, for input→prompt→output traceability), `output/`
+(derived artifacts, by type: `docs/`, `video/`, `audio/`, `images/`,
+`slides/`, `subs/`), and optional `work/` (work-in-progress) — with a
+per-folder `SKILL.md` descriptor. Input enters via `sources/`/`prompts/`
+and leaves via `output/`, never the reverse; **`output/` mirrors `sources/`**
+(same type + sub-path), so each input visibly corresponds to what it
+generated. The root `SKILL.md` is the project's **path contract**: a
+machine-readable declaration of where sources, prompts, outputs and pipeline
+I/O live. Today targets operate on explicit paths and built-in default dirs;
+reading the contract to resolve paths automatically (and enforce the mirror)
+is the documented next step — it is not yet wired, and projects without a
+contract behave exactly as before. See
 [`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md).
 
 ## Quick start
