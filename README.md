@@ -106,6 +106,18 @@ publicly verifiable) and `_private/<id>/` (git-ignored, with its own
 independent nested git and an isolated AI-use log); each target routes
 its output into that project's own tree.
 
+**Workspace model.** A project organises material by role —
+`primary/` (mutable canonical source-of-truth), `context/` (immutable
+research/reference), `output/` (derived artifacts, by type: `docs/`,
+`video/`, `audio/`, `images/`, `slides/`, `subs/`), and optional `work/`
+(work-in-progress) — with a per-folder `SKILL.md` descriptor. The root
+`SKILL.md` is the project's **path contract**: a machine-readable
+declaration of where sources, outputs and pipeline I/O live. Today targets
+operate on explicit paths and built-in default dirs; reading the contract
+to resolve paths automatically is the documented next step (it is not yet
+wired — projects without a contract behave exactly as before). See
+[`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md).
+
 ## Quick start
 
 ```bash
@@ -145,27 +157,30 @@ installation and usage guides per tool group.
 Produce your first artifact in a named project, end to end:
 
 ```bash
-# 1. Scaffold a project (public = tracked, private = git-ignored)
+# 1. Scaffold a project (gets the role layout primary/ context/ output/ work/ + SKILL.md)
 make new-project NAME=demo VISIBILITY=public
 
-# 2. Put your source-of-truth under the project's sources/ entry point
-cp my-notes.docx public/demo/sources/
+# 2. Put your canonical source-of-truth under primary/
+cp my-notes.docx public/demo/primary/docs/
 
-# 3. Bring up the tools you need and run a target pointing at that file
+# 3. Bring up the tools and run a target at that file; OUTDIR= lands output by type
 make docs-up
-make doc-ingest FILE=public/demo/sources/my-notes.docx FORMAT=md
+make doc-ingest FILE=public/demo/primary/docs/my-notes.docx FORMAT=md OUTDIR=public/demo/output/docs
 
 # 4. Find the result inside the project's own tree
-ls public/demo/documents/   # ingested Markdown + extracted media/
-ls public/demo/output/      # conversions and renders
+ls public/demo/output/docs/   # derived markdown + extracted media/
 ```
 
 Any target given a path (or `PROJECT=`) under `public/<id>/` or `_private/<id>/`
 routes its output into that project's own tree; with no project selected, output
-goes to the repository root. Next steps: the project launchpad
+goes to the repository root. Each project declares its layout in the root
+`SKILL.md` (path contract); until contract-resolution is wired, pass `OUTDIR=` to
+place output under a declared destination (otherwise targets use their built-in
+default dirs). Next steps: the project launchpad
 [`prompts/README.md`](prompts/README.md), the full conversion/export matrix
-[`docs/conversion-and-export.md`](docs/conversion-and-export.md), and video
-authoring [`docs/video-rules.md`](docs/video-rules.md).
+[`docs/conversion-and-export.md`](docs/conversion-and-export.md), the workspace
+model [`docs/design/project-workspace-taxonomy.md`](docs/design/project-workspace-taxonomy.md),
+and video authoring [`docs/video-rules.md`](docs/video-rules.md).
 
 ## Tool groups
 
