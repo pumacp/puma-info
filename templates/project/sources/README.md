@@ -9,11 +9,13 @@ It does **not** replace the per-tool input directories (`compositions/`,
 as before. You keep your source-of-truth here, in `sources/`, and from it you
 organize or derive the per-tool inputs that the pipeline consumes.
 
-This is the **light, organizational form** of the convention: **no target reads
-from `sources/` automatically** — that wiring is intentionally deferred to a
-later increment. For now `sources/` is a place to gather and navigate a
-project's real source material; populating the per-tool input dirs from it is a
-manual step.
+The conversion and ingest targets accept a file under `sources/` directly: point
+a target at `public/<id>/sources/<file>` (or `_private/<id>/sources/<file>`) and
+its output is routed into this project's own tree (`<id>/output/` or
+`<id>/documents/`), like any other per-project input. There is **no
+auto-conversion and no auto-chaining** — you invoke each target explicitly on the
+file you want; `sources/` simply holds the source-of-truth those targets read
+from.
 
 See `docs/design/research-project-workspace.md` §4 (source-of-truth: current
 state vs target) and §8 (deferred & gated work) for the design of record.

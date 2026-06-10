@@ -70,6 +70,12 @@ own directory instead of the repository-root `output/`:
 - A malformed prefix (e.g. `public/x.md`, only two segments) falls back to
   the root default.
 - Pass `OUTDIR=<dir>` to override the auto-derived destination.
+- A file under a project's **`sources/`** directory (the single source-of-truth
+  entry point) is a valid input: a path like `public/<id>/sources/<f>` or
+  `_private/<id>/sources/<f>` is classified by its `<id>` prefix, so output
+  routes into that project's own tree exactly like any other per-project input —
+  no extra flag needed. You still invoke each target explicitly; nothing is
+  auto-converted or auto-chained.
 
 > **Not yet per-project:** the Python render pipeline (`make video-render`,
 > `02_generate_narration`, `04_generate_subtitles`) still writes to the
