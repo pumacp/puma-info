@@ -155,11 +155,11 @@ role, each with a `SKILL.md` descriptor:
 
 Input enters via `primary/`/`context/`/`prompts/` and leaves via `output/`,
 never the reverse. The project's root `SKILL.md` is a machine-readable **path
-contract** declaring where each role lives. Today `doc-ingest`/`pptx-ingest` and
-the video orchestrator read it; the other targets use explicit paths and
-built-in defaults, and a project **without** a contract behaves identically to a
-flat layout. Wiring the remaining targets and enforcing the output↔sources
-mirror is the documented next step.
+contract** declaring where each role lives. The document, conversion, Manim, and
+video-orchestrator targets read it (resolving `outputs.<type>`, `pipeline.manim`,
+and `pipeline.compositions`); a project **without** a contract behaves
+identically to a flat layout. Translation (Group B) uses its own fixed workspace,
+and auto-enforcing the output↔sources mirror is the documented next step.
 
 For the full mechanics — the path-contract keys, the per-target wiring, and the
 output-mirror rule — see the
